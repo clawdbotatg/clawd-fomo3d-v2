@@ -15,6 +15,135 @@ const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 const POLL_MS = 3000;
 
 /* ═══════════════════════════════════════════════════════
+   ERROR DECODER — friendly messages for contract errors
+   ═══════════════════════════════════════════════════════ */
+
+// Known 4-byte error selectors → friendly messages
+const ERROR_SELECTORS: Record<string, string> = {
+  "0xe450d38c": "Not enough CLAWD! Buy some on Uniswap first. 🦞",
+  "0xfb8f41b2": "Approval too low. Click Approve first.",
+  "0x96c6fd1e": "Invalid sender address.",
+  "0xec442f05": "Invalid receiver address.",
+  "0xe602df05": "Invalid approver address.",
+  "0x94280d62": "Invalid spender address.",
+  "0xd93c0665": "Contract is paused.",
+  "0x8dfc202b": "Contract is not paused.",
+  "0x118cdaa7": "Not the contract owner.",
+  "0x1e4fbdf7": "Invalid owner address.",
+  "0x3ee5aeb5": "Reentrancy detected — try again.",
+  "0xb7d09497": "Token operation failed.",
+};
+
+// Known error names (from decoded viem errors) → friendly messages
+const ERROR_NAMES: Record<string, string> = {
+  ERC20InsufficientBalance: "Not enough CLAWD! Buy some on Uniswap first. 🦞",
+  ERC20InsufficientAllowance: "Approval too low. Click Approve first.",
+  ERC20InvalidSender: "Invalid sender address.",
+  ERC20InvalidReceiver: "Invalid receiver address.",
+  ERC20InvalidApprover: "Invalid approver address.",
+  ERC20InvalidSpender: "Invalid spender address.",
+  EnforcedPause: "Contract is paused.",
+  ExpectedPause: "Contract is not paused.",
+  OwnableUnauthorizedAccount: "Not the contract owner.",
+  OwnableInvalidOwner: "Invalid owner address.",
+  ReentrancyGuardReentrantCall: "Reentrancy detected — try again.",
+  SafeERC20FailedOperation: "Token operation failed.",
+};
+
+// Revert reason substrings → friendly messages
+const REVERT_MESSAGES: Array<[string, string]> = [
+  ["round not active", "Round has ended."],
+  ["round is active", "Round is still active."],
+  ["grace period", "Grace period active — wait 60s after timer expires."],
+  ["pot cap reached", "Pot cap reached — no more keys this round."],
+  ["no dividends", "Nothing to claim."],
+  ["zero keys", "Buy at least 1 key."],
+  ["too many keys", "Max 1000 keys per transaction."],
+  ["insufficient", "Not enough CLAWD! Buy some on Uniswap first. 🦞"],
+];
+
+function decodeError(err: unknown): string {
+  if (!err || typeof err !== "object") return "Something went wrong.";
+  const e = err as Record<string, any>;
+
+  // 1. User rejected / denied the transaction in wallet
+  const msg = e.message || e.shortMessage || e.details || "";
+  const msgLower = (typeof msg === "string" ? msg : String(msg)).toLowerCase();
+  if (
+    msgLower.includes("user rejected") ||
+    msgLower.includes("user denied") ||
+    msgLower.includes("rejected the request") ||
+    msgLower.includes("user cancelled") ||
+    msgLower.includes("user canceled")
+  ) {
+    return "Transaction cancelled.";
+  }
+
+  // 2. Check for decoded error name (viem ContractFunctionRevertedError)
+  const walkError = e.walk ? e.walk() : (e.cause?.data ?? e.cause ?? e);
+  const errorName = walkError?.errorName || e.data?.errorName || e.cause?.data?.errorName;
+  if (errorName && ERROR_NAMES[errorName]) {
+    return ERROR_NAMES[errorName];
+  }
+
+  // 3. Check for raw 4-byte selector in the error data
+  const rawData = walkError?.data || e.data?.data || e.cause?.data?.data || "";
+  if (typeof rawData === "string" && rawData.startsWith("0x") && rawData.length >= 10) {
+    const selector = rawData.slice(0, 10).toLowerCase();
+    if (ERROR_SELECTORS[selector]) {
+      return ERROR_SELECTORS[selector];
+    }
+  }
+
+  // 4. Check for generic revert string (0x08c379a0)
+  if (typeof rawData === "string" && rawData.toLowerCase().startsWith("0x08c379a0") && rawData.length > 138) {
+    try {
+      const hex = rawData.slice(138);
+      // Decode hex to UTF-8 without Buffer (browser-safe)
+      const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map(b => parseInt(b, 16)));
+      const decoded = new TextDecoder().decode(bytes).replace(/\0/g, "").trim();
+      if (decoded) return decoded;
+    } catch {
+      /* fall through */
+    }
+  }
+
+  // 5. Search the full message string for known revert reasons
+  const fullMsg = [msg, e.shortMessage, e.details, e.cause?.message, e.cause?.shortMessage]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  for (const [pattern, friendly] of REVERT_MESSAGES) {
+    if (fullMsg.includes(pattern)) return friendly;
+  }
+
+  // 6. Check for 4-byte selectors embedded in error message text
+  const selectorMatch = fullMsg.match(/0x[a-f0-9]{8}/i);
+  if (selectorMatch) {
+    const sel = selectorMatch[0].toLowerCase();
+    if (ERROR_SELECTORS[sel]) return ERROR_SELECTORS[sel];
+  }
+
+  // 7. Use viem's shortMessage if available (usually clean)
+  if (e.shortMessage && typeof e.shortMessage === "string") {
+    const short = e.shortMessage;
+    // Strip overly technical viem prefixes
+    const cleaned = short
+      .replace(/^The contract function .* reverted with the following reason:\n?/i, "")
+      .replace(/^ContractFunctionRevertedError: /i, "")
+      .replace(/^execution reverted:?\s*/i, "")
+      .trim();
+    if (cleaned && cleaned.length < 200 && !cleaned.includes("0x")) {
+      return cleaned;
+    }
+  }
+
+  // 8. Last resort — generic message (never show raw hex)
+  return "Transaction failed. Check your CLAWD balance and try again.";
+}
+
+/* ═══════════════════════════════════════════════════════
    HELPER COMPONENTS
    ═══════════════════════════════════════════════════════ */
 const TermDivider = () => <hr className="divider-glow my-5" />;
@@ -289,8 +418,8 @@ export default function Home() {
       await writeClawd({ functionName: "approve", args: [FOMO3D_ADDRESS, cost! * 5n] });
       notification.success("CLAWD APPROVED ✅");
       fireConfetti(e);
-    } catch (err: any) {
-      notification.error(err?.message?.includes("user rejected") ? "TX REJECTED" : "APPROVAL FAILED");
+    } catch (err: unknown) {
+      notification.error(decodeError(err));
     } finally {
       setIsApproving(false);
     }
@@ -306,8 +435,8 @@ export default function Home() {
       await writeFomo({ functionName: "buyKeys", args: [BigInt(keysNum)] });
       notification.success(`ACQUIRED ${keysNum} KEY${keysNum > 1 ? "S" : ""} 🦞`);
       fireConfetti(e);
-    } catch (err: any) {
-      notification.error(err?.message?.includes("user rejected") ? "TX REJECTED" : "BUY FAILED");
+    } catch (err: unknown) {
+      notification.error(decodeError(err));
     } finally {
       setIsBuying(false);
     }
@@ -319,8 +448,8 @@ export default function Home() {
       await writeFomo({ functionName: "endRound" });
       notification.success("ROUND TERMINATED");
       triggerConfetti();
-    } catch (err: any) {
-      notification.error(err?.message?.includes("Grace period") ? "GRACE PERIOD ACTIVE" : "END ROUND FAILED");
+    } catch (err: unknown) {
+      notification.error(decodeError(err));
     } finally {
       setIsEnding(false);
     }
@@ -332,8 +461,8 @@ export default function Home() {
       await writeFomo({ functionName: "claimDividends", args: [BigInt(round)] });
       notification.success(`DIVIDENDS CLAIMED — ROUND ${round}`);
       triggerConfetti();
-    } catch {
-      notification.error("NOTHING TO CLAIM");
+    } catch (err: unknown) {
+      notification.error(decodeError(err));
     } finally {
       setClaimingRound(null);
     }
