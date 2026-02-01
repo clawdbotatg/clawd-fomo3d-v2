@@ -670,8 +670,16 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           BUY KEYS — "SNATCH THE CROWN"
          ═══════════════════════════════════════ */}
-      <div className="w-full card-glass rounded-2xl p-5 md:p-6">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-4">◆ snatch the crown</div>
+      <div
+        className="w-full card-glass rounded-2xl p-5 md:p-6"
+        style={{
+          borderColor: "rgba(249, 115, 22, 0.4)",
+          boxShadow: "0 0 20px rgba(249, 115, 22, 0.1), inset 0 0 30px rgba(249, 115, 22, 0.03)",
+        }}
+      >
+        <div className="text-xs tracking-[0.3em] uppercase text-[#f97316] mb-4 font-bold text-glow-subtle">
+          ◆ snatch the crown ◆
+        </div>
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1">
@@ -736,21 +744,25 @@ export default function Home() {
           {/* Action Button */}
           <div className="flex flex-col justify-center md:w-64 gap-3">
             {wrongNetwork ? (
-              <button className="btn-action rounded-xl py-4 px-6 text-sm" disabled={isSwitching} onClick={handleSwitch}>
+              <button
+                className="btn-action rounded-xl w-full py-5 px-8 text-base"
+                disabled={isSwitching}
+                onClick={handleSwitch}
+              >
                 {isSwitching ? "SWITCHING..." : "SWITCH TO BASE"}
               </button>
             ) : needsApproval ? (
               <button
-                className="btn-action rounded-xl py-4 px-6 text-sm"
+                className="btn-crown rounded-xl w-full py-5 px-8 text-xl animate-pulse"
                 disabled={isApproving}
                 onClick={handleApprove}
               >
-                {isApproving ? "APPROVING..." : "APPROVE CLAWD"}
+                {isApproving ? "APPROVING..." : "🔓 APPROVE CLAWD"}
               </button>
             ) : (
               <button
                 ref={buyBtnRef}
-                className={`btn-crown rounded-xl py-4 px-6 text-lg ${
+                className={`btn-crown rounded-xl w-full py-5 px-8 text-xl ${
                   !isBuying && isRoundActive ? "hover:scale-[1.03] active:scale-95" : ""
                 }`}
                 disabled={isBuying || !isRoundActive}
@@ -761,7 +773,9 @@ export default function Home() {
             )}
 
             {needsApproval && (
-              <div className="text-[10px] text-[#8b7aaa] text-center tracking-wider">one-time approval required</div>
+              <div className="text-xs text-[#f97316]/70 text-center tracking-wider font-semibold">
+                ⚡ one-time approval required
+              </div>
             )}
 
             {/* BUY $CLAWD link */}

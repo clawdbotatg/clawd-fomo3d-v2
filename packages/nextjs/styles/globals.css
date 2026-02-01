@@ -157,33 +157,37 @@
 }
 
 /* ═══════════════════════════════════════════
-   BTN-ACTION — purple accent button
+   BTN-ACTION — prominent action button (orange)
    ═══════════════════════════════════════════ */
 .btn-action {
-  background: rgba(124, 58, 237, 0.15);
-  border: 1px solid rgba(124, 58, 237, 0.5);
-  color: #c9a0ff;
+  background: rgba(249, 115, 22, 0.2);
+  border: 2px solid rgba(249, 115, 22, 0.7);
+  color: #f97316;
   font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   transition: all 0.2s ease;
   cursor: pointer;
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
+  box-shadow:
+    0 0 15px rgba(249, 115, 22, 0.15),
+    inset 0 0 15px rgba(249, 115, 22, 0.05);
 }
 
 .btn-action:hover:not(:disabled) {
-  background: rgba(124, 58, 237, 0.25);
-  border-color: rgba(124, 58, 237, 0.7);
+  background: rgba(249, 115, 22, 0.3);
+  border-color: rgba(249, 115, 22, 0.9);
   box-shadow:
-    0 0 15px rgba(124, 58, 237, 0.4),
-    0 0 30px rgba(124, 58, 237, 0.2),
-    inset 0 0 15px rgba(124, 58, 237, 0.1);
-  text-shadow: 0 0 8px rgba(124, 58, 237, 0.6);
-  color: #f0e6ff;
+    0 0 20px rgba(249, 115, 22, 0.3),
+    0 0 40px rgba(249, 115, 22, 0.15),
+    inset 0 0 15px rgba(249, 115, 22, 0.08);
+  text-shadow: 0 0 10px rgba(249, 115, 22, 0.8);
+  color: #fbbf24;
 }
 
 .btn-action:active:not(:disabled) {
-  background: rgba(124, 58, 237, 0.35);
+  background: rgba(249, 115, 22, 0.35);
   transform: scale(0.97);
 }
 
@@ -194,40 +198,43 @@
 
 /* ═══════════════════════════════════════════
    BTN-CROWN — main "SNATCH THE CROWN" button
-   Mango orange, big, prominent
+   BOLD mango orange — the CTA that POPS
    ═══════════════════════════════════════════ */
 .btn-crown {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(249, 115, 22, 0.1) 100%);
-  border: 2px solid rgba(249, 115, 22, 0.6);
-  color: #f97316;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  border: 2px solid #fb923c;
+  color: #0f0d1a;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   transition: all 0.2s ease;
   cursor: pointer;
-  text-shadow: 0 0 10px rgba(249, 115, 22, 0.6);
+  text-shadow: none;
   box-shadow:
-    0 0 20px rgba(249, 115, 22, 0.15),
-    inset 0 0 20px rgba(249, 115, 22, 0.05);
+    0 0 25px rgba(249, 115, 22, 0.5),
+    0 0 50px rgba(249, 115, 22, 0.25),
+    0 0 80px rgba(249, 115, 22, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .btn-crown:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.3) 0%, rgba(249, 115, 22, 0.15) 100%);
-  border-color: rgba(249, 115, 22, 0.9);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  border-color: #fdba74;
   box-shadow:
-    0 0 30px rgba(249, 115, 22, 0.35),
-    0 0 60px rgba(249, 115, 22, 0.15),
-    inset 0 0 25px rgba(249, 115, 22, 0.08);
-  text-shadow:
-    0 0 10px rgba(249, 115, 22, 0.9),
-    0 0 25px rgba(249, 115, 22, 0.5);
-  color: #fbbf24;
+    0 0 35px rgba(249, 115, 22, 0.6),
+    0 0 70px rgba(249, 115, 22, 0.3),
+    0 0 100px rgba(249, 115, 22, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: #0f0d1a;
 }
 
 .btn-crown:active:not(:disabled) {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.4) 0%, rgba(249, 115, 22, 0.2) 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
   transform: scale(0.97);
+  box-shadow:
+    0 0 20px rgba(249, 115, 22, 0.4),
+    0 0 40px rgba(249, 115, 22, 0.2);
 }
 
 .btn-crown:disabled {
