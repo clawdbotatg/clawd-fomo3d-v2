@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { formatEther, parseEther } from "viem";
+import { useEffect, useState } from "react";
+import { Address } from "@scaffold-ui/components";
+import { formatEther } from "viem";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
-import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -17,13 +17,12 @@ export default function Home() {
 
   const [numKeys, setNumKeys] = useState("1");
   const [isSwitching, setIsSwitching] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const [clawdPrice, setClawdPrice] = useState(0);
   const [countdown, setCountdown] = useState("");
-  const [antiSnipeFlash, setAntiSnipeFlash] = useState(false);
+  const [antiSnipeFlash] = useState(false);
 
   // Read round info
   const { data: roundInfo } = useScaffoldReadContract({
@@ -53,19 +52,6 @@ export default function Home() {
     args: [BigInt(currentRound || 1), address || "0x0000000000000000000000000000000000000000"],
   });
 
-  // Read allowance
-  const { data: allowance } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundInfo",
-    // We'll read allowance directly from the CLAWD token via an external contract
-  });
-
-  // Read CLAWD allowance for game contract
-  const { data: deployedContracts } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundInfo",
-  });
-
   // Past round results
   const { data: prevRoundResult } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
@@ -80,7 +66,7 @@ export default function Home() {
   });
 
   // Write contracts
-  const { writeContractAsync: writeFomo } = useScaffoldWriteContract("ClawdFomo3D");
+  const { writeContractAsync: writeFomo } = useScaffoldWriteContract({ contractName: "ClawdFomo3D" });
 
   // Fetch CLAWD price from DexScreener
   useEffect(() => {
@@ -115,7 +101,9 @@ export default function Home() {
       const h = Math.floor(diff / 3600);
       const m = Math.floor((diff % 3600) / 60);
       const s = diff % 60;
-      setCountdown(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+      setCountdown(
+        `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
+      );
     };
     tick();
     const interval = setInterval(tick, 1000);
@@ -144,27 +132,6 @@ export default function Home() {
       notification.error("Failed to switch network");
     } finally {
       setIsSwitching(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    if (!cost) return;
-    setIsApproving(true);
-    try {
-      // Approve exact cost + 1% buffer
-      const approveAmount = cost + (cost / 100n);
-      await writeFomo({
-        functionName: "buyKeys",
-        args: [BigInt(keysNum)],
-      });
-      // Actually we need to approve the CLAWD token, not through the game contract
-      // We'll handle this via external contract write
-      notification.info("Approval needed — please approve CLAWD spending in your wallet");
-    } catch (e) {
-      console.error(e);
-      notification.error("Approval failed");
-    } finally {
-      setIsApproving(false);
     }
   };
 
@@ -234,9 +201,11 @@ export default function Home() {
       {/* Hero: Countdown Timer */}
       <div className="w-full bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 rounded-2xl p-8 text-center shadow-2xl border border-orange-500/30">
         <div className="text-sm uppercase tracking-widest text-orange-300 mb-1">Round {currentRound || "—"}</div>
-        <div className={`text-6xl md:text-8xl font-mono font-bold tracking-wider mb-3 ${
-          countdown === "EXPIRED" ? "text-red-400 animate-pulse" : "text-white"
-        } ${antiSnipeFlash ? "text-yellow-300" : ""}`}>
+        <div
+          className={`text-6xl md:text-8xl font-mono font-bold tracking-wider mb-3 ${
+            countdown === "EXPIRED" ? "text-red-400 animate-pulse" : "text-white"
+          } ${antiSnipeFlash ? "text-yellow-300" : ""}`}
+        >
           {countdown || "--:--:--"}
         </div>
         <div className="text-sm text-orange-200">
@@ -310,11 +279,7 @@ export default function Home() {
           </div>
           <div className="w-full sm:w-auto">
             {wrongNetwork ? (
-              <button
-                className="btn btn-primary w-full sm:w-auto"
-                disabled={isSwitching}
-                onClick={handleSwitch}
-              >
+              <button className="btn btn-primary w-full sm:w-auto" disabled={isSwitching} onClick={handleSwitch}>
                 {isSwitching ? "Switching..." : "Switch to Base"}
               </button>
             ) : (
@@ -329,8 +294,8 @@ export default function Home() {
           </div>
         </div>
         <p className="text-xs text-base-content/40 mt-2">
-          ⚠️ You must approve CLAWD spending first. Use the Debug tab or approve directly.
-          10% of every buy is burned permanently. Each buy resets the countdown timer.
+          ⚠️ You must approve CLAWD spending first. Use the Debug tab or approve directly. 10% of every buy is burned
+          permanently. Each buy resets the countdown timer.
         </p>
       </div>
 
@@ -354,8 +319,7 @@ export default function Home() {
           <h3 className="text-sm font-bold mb-2">💰 Claim Dividends</h3>
           {playerInfo && (
             <div className="text-xs text-base-content/60 mb-2">
-              Your keys: {Number(playerInfo[0]).toLocaleString()} |
-              Pending: {formatClawd(playerInfo[1])} CLAWD |
+              Your keys: {Number(playerInfo[0]).toLocaleString()} | Pending: {formatClawd(playerInfo[1])} CLAWD |
               Claimed: {formatClawd(playerInfo[2])} CLAWD
             </div>
           )}
@@ -393,19 +357,18 @@ export default function Home() {
       </div>
 
       {/* Past Round Result */}
-      {prevRoundResult && prevRoundResult[0] !== "0x0000000000000000000000000000000000000000" && (
+      {prevRoundResult && prevRoundResult.winner !== "0x0000000000000000000000000000000000000000" && (
         <div className="bg-base-200 rounded-xl p-4 w-full">
           <h3 className="text-sm font-bold mb-2">🏆 Previous Round Winner</h3>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="text-xs text-base-content/60">Winner:</span>
-              <Address address={prevRoundResult[0]} />
+              <Address address={prevRoundResult.winner} />
             </div>
             <div className="text-xs text-base-content/60">
-              Pot: {formatClawd(prevRoundResult[1])} CLAWD |
-              Won: {formatClawd(prevRoundResult[2])} CLAWD |
-              Burned: {formatClawd(prevRoundResult[3])} CLAWD |
-              Keys: {Number(prevRoundResult[5]).toLocaleString()}
+              Pot: {formatClawd(prevRoundResult.potSize)} CLAWD | Won: {formatClawd(prevRoundResult.winnerPayout)} CLAWD
+              | Burned: {formatClawd(prevRoundResult.burned)} CLAWD | Keys:{" "}
+              {Number(prevRoundResult.totalKeys).toLocaleString()}
             </div>
           </div>
         </div>
@@ -415,20 +378,43 @@ export default function Home() {
       <div className="bg-base-200 rounded-xl p-6 w-full">
         <h2 className="text-lg font-bold mb-3">❓ How It Works</h2>
         <div className="text-sm text-base-content/70 space-y-2">
-          <p><strong>1. Buy Keys</strong> — Spend $CLAWD to buy keys. Price increases with each key sold (bonding curve). 10% of your payment is burned immediately.</p>
-          <p><strong>2. Reset the Timer</strong> — Each purchase resets the countdown. You become the "last buyer."</p>
-          <p><strong>3. Win the Pot</strong> — When the timer runs out, the last buyer wins 40% of the pot! 30% is burned forever, 25% goes to all key holders as dividends, 5% to dev.</p>
-          <p><strong>🛡️ Anti-Snipe</strong> — If someone buys within the last 2 minutes, the timer extends by 2 minutes (capped at a hard maximum so the round always ends).</p>
-          <p><strong>🧪 Trial Round</strong> — This is a trial version with a max pot cap of 1M CLAWD. Once reached, no more buys — timer just runs out.</p>
-          <p><strong>⚡ End Round</strong> — Anyone can end the round after the timer expires (60s grace period for the last buyer).</p>
-          <p><strong>💰 Dividends</strong> — Key holders earn a share of every round's pot (25%). Claim after rounds end.</p>
+          <p>
+            <strong>1. Buy Keys</strong> — Spend $CLAWD to buy keys. Price increases with each key sold (bonding curve).
+            10% of your payment is burned immediately.
+          </p>
+          <p>
+            <strong>2. Reset the Timer</strong> — Each purchase resets the countdown. You become the &quot;last
+            buyer.&quot;
+          </p>
+          <p>
+            <strong>3. Win the Pot</strong> — When the timer runs out, the last buyer wins 40% of the pot! 30% is burned
+            forever, 25% goes to all key holders as dividends, 5% to dev.
+          </p>
+          <p>
+            <strong>🛡️ Anti-Snipe</strong> — If someone buys within the last 2 minutes, the timer extends by 2 minutes
+            (capped at a hard maximum so the round always ends).
+          </p>
+          <p>
+            <strong>🧪 Trial Round</strong> — This is a trial version with a max pot cap of 1M CLAWD. Once reached, no
+            more buys — timer just runs out.
+          </p>
+          <p>
+            <strong>⚡ End Round</strong> — Anyone can end the round after the timer expires (60s grace period for the
+            last buyer).
+          </p>
+          <p>
+            <strong>💰 Dividends</strong> — Key holders earn a share of every round&apos;s pot (25%). Claim after rounds
+            end.
+          </p>
         </div>
       </div>
 
       {/* CLAWD Price Footer */}
       <div className="text-xs text-base-content/40 text-center">
-        $CLAWD Price: ${clawdPrice.toFixed(6)} USD (via DexScreener) •
-        Token: <span className="font-mono">{CLAWD_TOKEN.slice(0, 6)}...{CLAWD_TOKEN.slice(-4)}</span>
+        $CLAWD Price: ${clawdPrice.toFixed(6)} USD (via DexScreener) • Token:{" "}
+        <span className="font-mono">
+          {CLAWD_TOKEN.slice(0, 6)}...{CLAWD_TOKEN.slice(-4)}
+        </span>
       </div>
     </div>
   );

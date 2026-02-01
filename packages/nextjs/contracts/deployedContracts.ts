@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   8453: {
     ClawdFomo3D: {
-      address: "0xb0774abbdcf000c9109f5db1cffc03023b8408f6",
+      address: "0xa5cd6e15f91ae84f5513a60c398f3c5e4c43e399",
       abi: [
         {
           type: "constructor",
@@ -663,6 +663,25 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "roundPointsPerKey",
+          inputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
           name: "roundResults",
           inputs: [
             {
@@ -1048,7 +1067,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 41478830,
+      deployedOnBlock: 41564485,
     },
   },
 } as const;

@@ -70,6 +70,9 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     uint256 internal constant MAGNITUDE = 2**128;
     uint256 public dividendRemainder;    // #8: dust tracking
 
+    // Per-round PPK snapshots — prevents cross-round dividend leakage
+    mapping(uint256 => uint256) public roundPointsPerKey;
+
     struct Player {
         uint256 keys;
         int256 pointsCorrection;
@@ -241,9 +244,12 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
             pointsPerKey += (dividendsPayout * MAGNITUDE) / totalKeys;
         }
 
+        // Snapshot PPK for this round before starting a new one
+        roundPointsPerKey[currentRound] = pointsPerKey;
+
         emit RoundEnded(currentRound, lastBuyer, winnerPayout, burnPayout);
 
-        // Start new round
+        // Start new round (resets pointsPerKey)
         _startNewRound();
     }
 
@@ -336,7 +342,9 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     function _dividendsOf(uint256 round, address addr) internal view returns (uint256) {
         Player storage p = players[round][addr];
         if (p.keys == 0) return 0;
-        int256 totalEarned = int256(pointsPerKey * p.keys) + p.pointsCorrection;
+        // Use snapshot for completed rounds, live value for current round
+        uint256 ppk = round < currentRound ? roundPointsPerKey[round] : pointsPerKey;
+        int256 totalEarned = int256(ppk * p.keys) + p.pointsCorrection;
         if (totalEarned < 0) return 0;
         uint256 earned = uint256(totalEarned) / MAGNITUDE;
         if (earned <= p.withdrawnDividends) return 0;
@@ -344,6 +352,7 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     }
 
     function _startNewRound() internal {
+        pointsPerKey = 0; // Reset PPK for new round — prevents cross-round leakage
         currentRound++;
         roundStart = block.timestamp;
         roundEnd = block.timestamp + timerDuration;
@@ -352,13 +361,15 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         dividendRemainder = 0;
         totalKeys = 0;
         lastBuyer = address(0);
-        // Note: pointsPerKey persists across rounds for cumulative tracking
 
         emit RoundStarted(currentRound, roundEnd);
     }
 
     /// @notice #11: Reset round when no one bought
     function _resetRound() internal {
+        // Snapshot PPK for this round (will be 0 if no dividends distributed)
+        roundPointsPerKey[currentRound] = pointsPerKey;
+        pointsPerKey = 0;
         currentRound++;
         roundStart = block.timestamp;
         roundEnd = block.timestamp + timerDuration;
