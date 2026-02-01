@@ -775,7 +775,7 @@ export default function Home() {
                 disabled={isBuying || !isRoundActive}
                 onClick={handleBuy}
               >
-                {isBuying ? "EXECUTING..." : !isRoundActive ? "ROUND ENDED" : `SNATCH THE 👑`}
+                {isBuying ? "EXECUTING..." : !isRoundActive ? "ROUND ENDED" : `SNATCH THE 👑 CROWN`}
               </button>
             )}
 
