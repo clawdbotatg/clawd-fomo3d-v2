@@ -353,7 +353,8 @@ export default function Home() {
     if (!roundInfo) return;
     const endTime = Number(roundInfo[2]);
     const tick = () => {
-      const now = Math.floor(Date.now() / 1000);
+      const nowMs = Date.now();
+      const now = Math.floor(nowMs / 1000);
       const diff = endTime - now;
       setTimeLeft(diff);
       if (diff <= 0) {
@@ -365,10 +366,20 @@ export default function Home() {
       const m = Math.floor((diff % 3600) / 60);
       const s = diff % 60;
       const pad = (n: number) => n.toString().padStart(2, "0");
-      setCountdown(d > 0 ? `${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`);
+      if (d > 0) {
+        setCountdown(`${d}d ${pad(h)}:${pad(m)}:${pad(s)}`);
+      } else if (h > 0) {
+        setCountdown(`${pad(h)}:${pad(m)}:${pad(s)}`);
+      } else {
+        // Under 1 hour — show MM:SS.ms with flying centiseconds
+        const diffMs = endTime * 1000 - nowMs;
+        const cs = Math.floor((diffMs % 1000) / 10);
+        setCountdown(`${pad(m)}:${pad(s)}.${pad(cs)}`);
+      }
     };
     tick();
-    const iv = setInterval(tick, 1000);
+    // Use fast interval (50ms) so milliseconds fly when under 1 hour
+    const iv = setInterval(tick, 50);
     return () => clearInterval(iv);
   }, [roundInfo]);
 
@@ -607,6 +618,33 @@ export default function Home() {
           <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 border border-[#f97316]/70 bg-[#f97316]/15 rounded-full">
             <div className="w-2 h-2 bg-[#f97316] animate-pulse-ring rounded-full" />
             <span className="text-[10px] text-[#f97316] tracking-[0.3em] uppercase font-bold">ANTI-SNIPE</span>
+          </div>
+        )}
+
+        {/* END ROUND — right under timer when round is over */}
+        {!isRoundActive && (
+          <div className="mt-6">
+            <div className="text-sm text-[#f97316] font-bold mb-2 text-glow-subtle animate-pulse">
+              🏁 ROUND OVER — TIME TO DISTRIBUTE
+            </div>
+            <div className="text-xs text-[#8b7aaa] mb-3">60s grace for last buyer, then anyone can trigger it</div>
+            {wrongNetwork ? (
+              <button
+                className="btn-crown rounded-xl py-4 px-10 text-lg hover:scale-[1.03] active:scale-95"
+                disabled={isSwitching}
+                onClick={handleSwitch}
+              >
+                {isSwitching ? "SWITCHING..." : "SWITCH TO BASE"}
+              </button>
+            ) : (
+              <button
+                className="btn-crown rounded-xl py-4 px-10 text-lg hover:scale-[1.03] active:scale-95 animate-pulse"
+                disabled={isEnding}
+                onClick={handleEndRound}
+              >
+                {isEnding ? "EXECUTING..." : "🏁 END ROUND & DISTRIBUTE 🏁"}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -938,36 +976,6 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
-          </div>
-        </>
-      )}
-
-      {/* ═══════════════════════════════════════
-          END ROUND
-         ═══════════════════════════════════════ */}
-      {!isRoundActive && (
-        <>
-          <TermDivider />
-          <div className="w-full card-glass rounded-2xl p-5 text-center">
-            <div className="text-sm text-[#f97316] font-bold mb-2 text-glow-subtle">🏁 ROUND OVER</div>
-            <div className="text-xs text-[#8b7aaa] mb-4">60s grace for last buyer, then anyone can call endRound()</div>
-            {wrongNetwork ? (
-              <button
-                className="btn-action rounded-xl py-2.5 px-8 text-sm"
-                disabled={isSwitching}
-                onClick={handleSwitch}
-              >
-                {isSwitching ? "SWITCHING..." : "SWITCH TO BASE"}
-              </button>
-            ) : (
-              <button
-                className="btn-action rounded-xl py-2.5 px-8 text-sm"
-                disabled={isEnding}
-                onClick={handleEndRound}
-              >
-                {isEnding ? "EXECUTING..." : "END ROUND & DISTRIBUTE"}
-              </button>
-            )}
           </div>
         </>
       )}

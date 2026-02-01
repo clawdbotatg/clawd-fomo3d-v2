@@ -34,8 +34,8 @@ export const HeaderMenuLinks = () => {
               href={href}
               passHref
               className={`${
-                isActive ? "text-[#ff4444] text-glow-subtle" : "text-[#ff6666]"
-              } hover:text-[#ff4444] hover:text-glow-subtle py-1.5 px-3 text-sm font-mono font-bold tracking-wider uppercase transition-all`}
+                isActive ? "text-[#f97316] text-glow-subtle" : "text-[#fb923c]"
+              } hover:text-[#f97316] hover:text-glow-subtle py-1.5 px-3 text-sm font-mono font-bold tracking-wider uppercase transition-all`}
             >
               {icon}
               <span>{label}</span>
@@ -64,18 +64,18 @@ export const Header = () => {
       className="sticky lg:static top-0 navbar min-h-0 shrink-0 justify-between z-20 px-0 sm:px-2"
       style={{
         background: "rgba(26, 26, 30, 0.95)",
-        borderBottom: "1px solid rgba(255, 68, 68, 0.4)",
+        borderBottom: "1px solid rgba(249, 115, 22, 0.4)",
         backdropFilter: "blur(12px)",
       }}
     >
       <div className="navbar-start w-auto lg:w-1/2">
         <details className="dropdown" ref={burgerMenuRef}>
           <summary className="ml-1 btn btn-ghost lg:hidden hover:bg-transparent">
-            <Bars3Icon className="h-1/2 text-[#ff4444]" />
+            <Bars3Icon className="h-1/2 text-[#f97316]" />
           </summary>
           <ul
             className="menu menu-compact dropdown-content mt-3 p-2 shadow-sm rounded-sm w-52"
-            style={{ background: "#222228", border: "1px solid rgba(255, 68, 68, 0.45)" }}
+            style={{ background: "#222228", border: "1px solid rgba(249, 115, 22, 0.45)" }}
             onClick={() => {
               burgerMenuRef?.current?.removeAttribute("open");
             }}
@@ -85,10 +85,10 @@ export const Header = () => {
         </details>
         <Link href="/" passHref className="hidden lg:flex items-center gap-3 ml-4 mr-6 shrink-0 group">
           <div className="flex flex-col">
-            <span className="font-extrabold leading-tight text-lg text-[#ff4444] text-glow-subtle tracking-wider font-mono">
-              ◆ ClawFomo<span className="text-[#ff4444]/50 text-sm">.com</span>
+            <span className="font-extrabold leading-tight text-lg text-[#f97316] text-glow-subtle tracking-wider font-mono">
+              ◆ ClawFomo<span className="text-[#f97316]/50 text-sm">.com</span>
             </span>
-            <span className="text-[10px] text-[#ff4444]/70 font-mono tracking-[0.3em] uppercase">
+            <span className="text-[10px] text-[#f97316]/70 font-mono tracking-[0.3em] uppercase">
               last_buyer_wins_the_pot
             </span>
           </div>
