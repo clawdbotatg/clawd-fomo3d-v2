@@ -1,83 +1,65 @@
-# 🏗 Scaffold-ETH 2
+![ClawFomo.com](packages/nextjs/public/og-image.png)
 
-<h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
-</h4>
+# ClawFomo.com
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
-
-> [!NOTE]
-> 🤖 Scaffold-ETH 2 is AI-ready! It has everything agents need to build on Ethereum. Check `.agents/`, `.claude/`, `.opencode` or `.cursor/` for more info.
-
-⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript.
-
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
-
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
-
-## Requirements
-
-Before you begin, you need to install the following tools:
-
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
-
-## Quickstart
-
-To get started with Scaffold-ETH 2, follow the steps below:
-
-1. Install dependencies if it was skipped in CLI:
+> An AI-built Fomo3D game on Base using $CLAWD tokens.
 
 ```
-cd my-dapp-example
-yarn install
+┌──────────────────────────────────────────────────────────────┐
+│  BUY KEYS → RESET TIMER → LAST BUYER WINS THE POT  🦞      │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-2. Run a local network in the first terminal:
+## How It Works
+
+1. **Buy Keys** — Spend $CLAWD tokens to acquire keys. Price increases with each key sold (bonding curve).
+2. **Reset Timer** — Every purchase resets the 5-minute countdown. You become the leader.
+3. **Win the Pot** — When the timer hits zero, the last buyer wins. Pot is distributed automatically.
 
 ```
-yarn chain
+  ┌─────────────────────────────────────┐
+  │  TIMER: 05:00 ──────▶ 00:00        │
+  │  LAST BUYER TAKES THE POT          │
+  └─────────────────────────────────────┘
 ```
 
-This command starts a local Ethereum network using Foundry. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/foundry/foundry.toml`.
+## Contract Parameters
 
-3. On a second terminal, deploy the test contract:
+| Parameter | Value |
+|---|---|
+| **Winner (last buyer)** | 50% of pot |
+| **Burned (forever)** | 20% of pot |
+| **Key holder dividends** | 25% of pot |
+| **Next round seed** | 5% of pot |
+| **Burn on every purchase** | 10% |
+| **Timer duration** | 5 minutes |
+| **Key price increment** | 110 CLAWD per key |
+| **Anti-snipe zone** | Last 2 minutes (extends timer on buy) |
+
+## Links
+
+| | |
+|---|---|
+| 🌐 **Live App** | [clawfomo.com](https://clawfomo.com) |
+| 📜 **Contract** | [`0x572Bc6149a5A9b013b5e9c370aEf6Fec8388F53f`](https://basescan.org/address/0x572Bc6149a5A9b013b5e9c370aEf6Fec8388F53f) |
+| 🦞 **$CLAWD Token** | [`0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07`](https://basescan.org/token/0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07) |
+| 💱 **Buy $CLAWD** | [Uniswap](https://app.uniswap.org/swap?outputCurrency=0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07&chain=base) |
+
+## Stack
+
+- **Frontend:** Next.js + Tailwind CSS
+- **Framework:** [Scaffold-ETH 2](https://scaffoldeth.io)
+- **Contracts:** Solidity + Foundry
+- **Network:** Base (L2)
+
+## Built by Clawd
+
+This entire project — contracts, frontend, deployment — was built by [Clawd](https://x.com/clawdbotatg), an AI agent running on [Scaffold-ETH 2](https://scaffoldeth.io).
 
 ```
-yarn deploy
+  ┌─────────────────────────────────┐
+  │  🤖 BUILT BY AI. USE AT YOUR   │
+  │     OWN RISK. UNAUDITED.       │
+  │     EXPECT BUGS. HAVE FUN.     │
+  └─────────────────────────────────┘
 ```
-
-This command deploys a test smart contract to the local network. The contract is located in `packages/foundry/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/foundry/script` to deploy the contract to the network. You can also customize the deploy script.
-
-4. On a third terminal, start your NextJS app:
-
-```
-yarn start
-```
-
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
-
-Run smart contract test with `yarn foundry:test`
-
-- Edit your smart contracts in `packages/foundry/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/foundry/script`
-
-
-## Documentation
-
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
-
-To know more about its features, check out our [website](https://scaffoldeth.io).
-
-## Contributing to Scaffold-ETH 2
-
-We welcome contributions to Scaffold-ETH 2!
-
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.

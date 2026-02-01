@@ -738,11 +738,11 @@ export default function Home() {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <TermLabel>- winner (last buyer)</TermLabel>
-            <TermValue glow>40%</TermValue>
+            <TermValue glow>50%</TermValue>
           </div>
           <div className="flex justify-between">
             <TermLabel>- burned (forever)</TermLabel>
-            <TermValue>30%</TermValue>
+            <TermValue>20%</TermValue>
           </div>
           <div className="flex justify-between">
             <TermLabel>- key_holder_divs</TermLabel>
@@ -844,7 +844,7 @@ export default function Home() {
           <div>
             <span className="text-[#ff4444] font-bold">03.</span> win_pot
             <div className="ml-4 mt-1">
-              timer expires → last buyer wins 40%. 30% burned. 25% dividends to key holders. 5% seeds next round.
+              timer expires → last buyer wins 50%. 20% burned. 25% dividends to key holders. 5% seeds next round.
             </div>
           </div>
         </div>
