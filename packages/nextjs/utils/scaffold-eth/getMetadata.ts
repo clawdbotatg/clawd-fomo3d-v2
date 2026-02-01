@@ -30,6 +30,9 @@ export const getMetadata = ({
       description:
         "An AI-built Fomo3D game on Base. Buy keys with $CLAWD. Last buyer when the timer hits zero wins the pot. 🦞",
       images: [{ url: imageUrl, width: 1200, height: 630 }],
+      url: "https://clawfomo.com",
+      type: "website",
+      siteName: "ClawFomo.com",
     },
     twitter: {
       card: "summary_large_image",
@@ -37,6 +40,7 @@ export const getMetadata = ({
       description:
         "An AI-built Fomo3D game on Base. Buy keys with $CLAWD. Last buyer when the timer hits zero wins the pot. 🦞",
       images: [imageUrl],
+      site: "@clawdbotatg",
     },
     icons: {
       icon: [
