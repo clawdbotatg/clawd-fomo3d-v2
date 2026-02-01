@@ -24,14 +24,13 @@ contract ClawdFomo3DTest is Test {
     address public alice = address(0xA11CE);
     address public bob = address(0xB0B);
     address public carol = address(0xCA201);
-    address public dev = address(0xDE7);
 
     uint256 public constant TIMER = 1 hours;
     uint256 public constant POT_CAP = 1_000_000 * 1e18;
 
     function setUp() public {
         clawd = new MockCLAWD();
-        game = new ClawdFomo3D(address(clawd), TIMER, dev, POT_CAP);
+        game = new ClawdFomo3D(address(clawd), TIMER, POT_CAP);
 
         // Fund players
         clawd.transfer(alice, 10_000_000 * 1e18);
@@ -85,9 +84,9 @@ contract ClawdFomo3DTest is Test {
 
         _buyKeys(alice, 1);
 
-        // Second key costs 1000 + 10 = 1010
+        // Second key costs 1000 + 110 = 1110
         uint256 price2 = game.currentKeyPrice();
-        assertEq(price2, 1010 * 1e18, "Second key = 1010 CLAWD");
+        assertEq(price2, 1110 * 1e18, "Second key = 1110 CLAWD");
     }
 
     function test_BurnOnBuy() public {
@@ -108,7 +107,7 @@ contract ClawdFomo3DTest is Test {
         _buyKeys(bob, 5);
 
         uint256 pot = game.pot();
-        uint256 expectedWinnerPayout = (pot * 4000) / 10000; // 40%
+        uint256 expectedWinnerPayout = (pot * 5000) / 10000; // 50%
 
         uint256 bobBefore = clawd.balanceOf(bob);
 
@@ -116,7 +115,7 @@ contract ClawdFomo3DTest is Test {
         _endRoundAsLastBuyer();
 
         uint256 bobAfter = clawd.balanceOf(bob);
-        assertEq(bobAfter - bobBefore, expectedWinnerPayout, "Winner gets 40% of pot");
+        assertEq(bobAfter - bobBefore, expectedWinnerPayout, "Winner gets 50% of pot");
     }
 
     function test_SingleRoundDividends() public {
@@ -309,7 +308,7 @@ contract ClawdFomo3DTest is Test {
     function test_SinglePlayerRound() public {
         _buyKeys(alice, 10);
         uint256 pot = game.pot();
-        uint256 expectedWinner = (pot * 4000) / 10000;
+        uint256 expectedWinner = (pot * 5000) / 10000;
         uint256 expectedDividends = (pot * 2500) / 10000;
 
         uint256 aliceBefore = clawd.balanceOf(alice);
@@ -317,7 +316,7 @@ contract ClawdFomo3DTest is Test {
 
         // Alice wins as last buyer
         uint256 aliceAfterWin = clawd.balanceOf(alice);
-        assertEq(aliceAfterWin - aliceBefore, expectedWinner, "Single player wins pot");
+        assertEq(aliceAfterWin - aliceBefore, expectedWinner, "Single player wins 50% of pot");
 
         // Alice also gets all dividends
         uint256 aliceDivs = game.pendingDividends(1, alice);
@@ -411,29 +410,36 @@ contract ClawdFomo3DTest is Test {
         assertApproxEqAbs(aliceR2Divs, bobR2Divs, 1, "Equal R2 keys = equal R2 dividends");
     }
 
-    function test_DevGetsPayout() public {
+    function test_NextRoundSeed() public {
         _buyKeys(alice, 10);
-        uint256 pot = game.pot();
-        uint256 expectedDev = (pot * 500) / 10000; // 5%
+        uint256 potBefore = game.pot();
+        uint256 expectedSeed = (potBefore * 500) / 10000; // 5%
 
-        uint256 devBefore = clawd.balanceOf(dev);
         _endRoundAsLastBuyer();
-        uint256 devAfter = clawd.balanceOf(dev);
 
-        assertEq(devAfter - devBefore, expectedDev, "Dev gets 5%");
+        // After round ends, next round's pot should include the seed
+        uint256 newPot = game.pot();
+        // newPot = dividendRemainder(dust) + nextRoundSeed
+        // nextRoundSeed was added to pot in _startNewRound
+        assertTrue(newPot >= expectedSeed, "Next round pot includes seed from previous round");
+
+        // Verify the seed amount is roughly 5% of previous pot
+        // (pot also includes dust from rounding, so >= is the right check)
+        uint256 dust = potBefore - (potBefore * 5000 / 10000) - (potBefore * 2000 / 10000) - (potBefore * 2500 / 10000) - (potBefore * 500 / 10000);
+        assertEq(newPot, expectedSeed + dust, "Next round pot = seed + dust");
     }
 
     function test_BurnOnRoundEnd() public {
         _buyKeys(alice, 10);
         uint256 pot = game.pot();
-        uint256 expectedBurn = (pot * 3000) / 10000; // 30%
+        uint256 expectedBurn = (pot * 2000) / 10000; // 20%
 
         address dead = game.DEAD();
         uint256 deadBefore = clawd.balanceOf(dead);
         _endRoundAsLastBuyer();
         uint256 deadAfter = clawd.balanceOf(dead);
 
-        assertEq(deadAfter - deadBefore, expectedBurn, "30% burned at round end");
+        assertEq(deadAfter - deadBefore, expectedBurn, "20% burned at round end");
     }
 
     function test_PotCapEnforced() public {

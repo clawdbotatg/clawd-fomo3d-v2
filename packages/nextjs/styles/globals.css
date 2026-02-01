@@ -16,27 +16,27 @@
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #ff2222;
-  --color-primary-content: #0a0a0a;
-  --color-secondary: #661111;
-  --color-secondary-content: #ff4444;
-  --color-accent: #ff2222;
-  --color-accent-content: #0a0a0a;
-  --color-neutral: #ff2222;
-  --color-neutral-content: #1a0a0a;
-  --color-base-100: #0d0d0d;
-  --color-base-200: #0a0a0a;
-  --color-base-300: #111111;
-  --color-base-content: #ff2222;
-  --color-info: #661111;
-  --color-success: #ff2222;
-  --color-warning: #ff4444;
-  --color-error: #ff0000;
+  --color-primary: #ff4444;
+  --color-primary-content: #1c1c22;
+  --color-secondary: #cc3333;
+  --color-secondary-content: #ff6666;
+  --color-accent: #ff4444;
+  --color-accent-content: #1c1c22;
+  --color-neutral: #ff4444;
+  --color-neutral-content: #1c1c22;
+  --color-base-100: #1c1c22;
+  --color-base-200: #1a1a1e;
+  --color-base-300: #222228;
+  --color-base-content: #ff4444;
+  --color-info: #cc3333;
+  --color-success: #ff4444;
+  --color-warning: #ff6666;
+  --color-error: #ff4444;
 
   --radius-field: 0.25rem;
   --radius-box: 0.25rem;
   --tt-tailw: 6px;
-  --tt-bg: #1a0a0a;
+  --tt-bg: #252530;
 }
 
 /*
@@ -57,8 +57,8 @@
 
   body {
     min-height: 100vh;
-    background: #0a0a0a;
-    color: #ff2222;
+    background: #1a1a1e;
+    color: #ff4444;
     font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', ui-monospace, monospace;
   }
 
@@ -71,7 +71,7 @@
 
 :root,
 [data-theme] {
-  background: #0a0a0a;
+  background: #1a1a1e;
 }
 
 /* ═══════════════════════════════════════════
@@ -90,8 +90,8 @@
     to bottom,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.15) 2px,
-    rgba(0, 0, 0, 0.15) 4px
+    rgba(0, 0, 0, 0.025) 2px,
+    rgba(0, 0, 0, 0.025) 4px
   );
 }
 
@@ -104,8 +104,8 @@
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255, 34, 34, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 34, 34, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(255, 68, 68, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 68, 68, 0.06) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -114,23 +114,26 @@
    ═══════════════════════════════════════════ */
 .text-glow {
   text-shadow:
-    0 0 7px rgba(255, 34, 34, 0.5),
-    0 0 20px rgba(255, 34, 34, 0.3),
-    0 0 40px rgba(255, 34, 34, 0.15);
+    0 0 10px rgba(255, 68, 68, 0.8),
+    0 0 25px rgba(255, 68, 68, 0.5),
+    0 0 50px rgba(255, 68, 68, 0.3),
+    0 0 80px rgba(255, 68, 68, 0.15);
 }
 
 .text-glow-subtle {
   text-shadow:
-    0 0 5px rgba(255, 34, 34, 0.3),
-    0 0 15px rgba(255, 34, 34, 0.15);
+    0 0 8px rgba(255, 68, 68, 0.6),
+    0 0 20px rgba(255, 68, 68, 0.35),
+    0 0 40px rgba(255, 68, 68, 0.15);
 }
 
 .text-glow-intense {
   text-shadow:
-    0 0 10px rgba(255, 34, 34, 0.7),
-    0 0 30px rgba(255, 34, 34, 0.5),
-    0 0 60px rgba(255, 34, 34, 0.3),
-    0 0 100px rgba(255, 34, 34, 0.15);
+    0 0 15px rgba(255, 80, 80, 1),
+    0 0 40px rgba(255, 68, 68, 0.8),
+    0 0 80px rgba(255, 68, 68, 0.5),
+    0 0 120px rgba(255, 68, 68, 0.3),
+    0 0 180px rgba(255, 68, 68, 0.15);
 }
 
 /* ═══════════════════════════════════════════
@@ -138,8 +141,8 @@
    ═══════════════════════════════════════════ */
 .btn-terminal {
   background: transparent;
-  border: 1px solid #ff2222;
-  color: #ff2222;
+  border: 1px solid #ff4444;
+  color: #ff4444;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   text-transform: uppercase;
@@ -149,16 +152,16 @@
 }
 
 .btn-terminal:hover:not(:disabled) {
-  background: rgba(255, 34, 34, 0.1);
+  background: rgba(255, 68, 68, 0.18);
   box-shadow:
-    0 0 10px rgba(255, 34, 34, 0.3),
-    0 0 20px rgba(255, 34, 34, 0.15),
-    inset 0 0 10px rgba(255, 34, 34, 0.1);
-  text-shadow: 0 0 5px rgba(255, 34, 34, 0.5);
+    0 0 15px rgba(255, 68, 68, 0.5),
+    0 0 30px rgba(255, 68, 68, 0.3),
+    inset 0 0 15px rgba(255, 68, 68, 0.15);
+  text-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
 }
 
 .btn-terminal:active:not(:disabled) {
-  background: rgba(255, 34, 34, 0.2);
+  background: rgba(255, 68, 68, 0.25);
 }
 
 .btn-terminal:disabled {
@@ -175,8 +178,8 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 34, 34, 0.4) 20%,
-    rgba(255, 34, 34, 0.4) 80%,
+    rgba(255, 68, 68, 0.65) 20%,
+    rgba(255, 68, 68, 0.65) 80%,
     transparent
   );
   margin: 1rem 0;
@@ -186,8 +189,9 @@
    TERMINAL BOX — bordered sections
    ═══════════════════════════════════════════ */
 .terminal-box {
-  border: 1px solid rgba(255, 34, 34, 0.2);
-  background: rgba(255, 34, 34, 0.02);
+  border: 1px solid rgba(255, 68, 68, 0.4);
+  background: rgba(255, 68, 68, 0.05);
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.06), inset 0 0 30px rgba(255, 68, 68, 0.02);
   position: relative;
 }
 
@@ -196,9 +200,9 @@
   position: absolute;
   top: -0.5em;
   left: 0.75em;
-  background: #0a0a0a;
+  background: #1a1a1e;
   padding: 0 0.25em;
-  color: rgba(255, 34, 34, 0.4);
+  color: rgba(255, 68, 68, 0.7);
   font-size: 0.6em;
 }
 
@@ -212,7 +216,7 @@
 .corner-diamonds::before,
 .corner-diamonds::after {
   position: absolute;
-  color: rgba(255, 34, 34, 0.25);
+  color: rgba(255, 68, 68, 0.55);
   font-size: 0.5rem;
   pointer-events: none;
 }
@@ -307,7 +311,7 @@ input[type="number"] {
 
 .link {
   text-underline-offset: 2px;
-  color: #ff2222;
+  color: #ff4444;
 }
 
 .link:hover {
@@ -321,16 +325,16 @@ input[type="number"] {
 
 /* Override navbar/base backgrounds */
 .navbar {
-  background: rgba(10, 10, 10, 0.95) !important;
+  background: rgba(26, 26, 30, 0.95) !important;
 }
 
 /* ═══════════════════════════════════════════
    PULSE RING — for status indicators
    ═══════════════════════════════════════════ */
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(255, 34, 34, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(255, 34, 34, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 34, 34, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
 }
 
 .animate-pulse-ring {
@@ -345,14 +349,14 @@ input[type="number"] {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #1a1a1e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 34, 34, 0.3);
+  background: rgba(255, 68, 68, 0.45);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 34, 34, 0.5);
+  background: rgba(255, 68, 68, 0.65);
 }

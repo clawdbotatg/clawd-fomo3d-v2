@@ -8,17 +8,16 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
- * @title ClawdFomo3D v2
+ * @title ClawdFomo3D v6
  * @notice Safer FOMO3D king-of-the-hill game with $CLAWD tokens.
  *         Last buyer wins when countdown timer expires.
+ *         Rounds have no hard cap — they run indefinitely as long as keys are bought.
  *
  * Safety fixes implemented:
  *   #2  - Emergency pause (Pausable) + TimerExtended event
- *   #5  - Anti-snipe hard cap (MAX_ROUND_LENGTH)
  *   #6  - Overflow protection (MAX_KEYS_PER_BUY)
  *   #7  - Constructor validation (non-zero addresses/timer)
  *   #8  - Dividend dust tracking (remainder carried forward)
- *   #9  - Anti-snipe cap (clamped to maxEndTime)
  *   #10 - Grace period for endRound (lastBuyer priority)
  *   #11 - Round deadlock fix (endRound resets if no buys)
  *
@@ -29,18 +28,17 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
 
     // ============ Constants ============
     uint256 public constant BURN_ON_BUY_BPS = 1000;       // 10% burned on every buy
-    uint256 public constant WINNER_BPS = 4000;             // 40% of pot to winner
-    uint256 public constant BURN_ON_END_BPS = 3000;        // 30% of pot burned at round end
+    uint256 public constant WINNER_BPS = 5000;             // 50% of pot to winner
+    uint256 public constant BURN_ON_END_BPS = 2000;        // 20% of pot burned at round end
     uint256 public constant DIVIDENDS_BPS = 2500;          // 25% to key holders
-    uint256 public constant DEV_BPS = 500;                 // 5% to dev
+    uint256 public constant NEXT_ROUND_SEED_BPS = 500;    // 5% seeds next round's pot
     uint256 public constant BPS = 10000;
 
     uint256 public constant ANTI_SNIPE_THRESHOLD = 2 minutes;
     uint256 public constant ANTI_SNIPE_EXTENSION = 2 minutes;
-    uint256 public constant MAX_ROUND_LENGTH = 7 days;     // #5/#9: hard cap
 
     uint256 public constant BASE_PRICE = 1000 * 1e18;     // 1000 CLAWD base
-    uint256 public constant PRICE_INCREMENT = 10 * 1e18;   // +10 CLAWD per key sold
+    uint256 public constant PRICE_INCREMENT = 110 * 1e18;  // +110 CLAWD per key sold
     uint256 public constant MAX_KEYS_PER_BUY = 1000;       // #6: overflow protection
 
     uint256 public constant GRACE_PERIOD = 60;             // #10: 60s grace for lastBuyer
@@ -49,14 +47,12 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
 
     // ============ Immutables ============
     IERC20 public immutable clawd;
-    address public immutable dev;
     uint256 public immutable timerDuration;
 
     // ============ State ============
     uint256 public currentRound;
     uint256 public roundStart;
     uint256 public roundEnd;
-    uint256 public maxEndTime;           // #9: hard cap end time
     uint256 public pot;
     uint256 public totalKeys;
     address public lastBuyer;
@@ -69,6 +65,7 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     uint256 public pointsPerKey;
     uint256 internal constant MAGNITUDE = 2**128;
     uint256 public dividendRemainder;    // #8: dust tracking
+    uint256 public nextRoundSeed;        // 5% from previous round seeds the next pot
 
     // Per-round PPK snapshots — prevents cross-round dividend leakage
     mapping(uint256 => uint256) public roundPointsPerKey;
@@ -97,30 +94,26 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     event RoundReset(uint256 indexed round);
     event DividendsClaimed(uint256 indexed round, address indexed player, uint256 amount);
     event RoundStarted(uint256 indexed round, uint256 endTime);
-    event TimerExtended(uint256 indexed round, uint256 newEndTime, uint256 maxEndTime);
+    event TimerExtended(uint256 indexed round, uint256 newEndTime);
     event PotCapUpdated(uint256 newCap);
 
     // ============ Constructor ============
     constructor(
         address _clawd,
         uint256 _timerDuration,
-        address _dev,
         uint256 _initialPotCap
     ) Ownable(msg.sender) {
         // #7: Constructor validation
         require(_clawd != address(0), "CLAWD address cannot be zero");
-        require(_dev != address(0), "Dev address cannot be zero");
         require(_timerDuration > 0, "Timer duration must be > 0");
 
         clawd = IERC20(_clawd);
         timerDuration = _timerDuration;
-        dev = _dev;
         potCap = _initialPotCap;
 
         currentRound = 1;
         roundStart = block.timestamp;
         roundEnd = block.timestamp + _timerDuration;
-        maxEndTime = block.timestamp + MAX_ROUND_LENGTH;
 
         emit RoundStarted(1, roundEnd);
     }
@@ -181,15 +174,12 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         totalKeys += numKeys;
         lastBuyer = msg.sender;
 
-        // Anti-snipe: extend timer if within threshold, but clamp to maxEndTime (#9)
+        // Anti-snipe: extend timer if within threshold
         if (roundEnd - block.timestamp < ANTI_SNIPE_THRESHOLD) {
             uint256 newEnd = block.timestamp + ANTI_SNIPE_EXTENSION;
-            if (newEnd > maxEndTime) {
-                newEnd = maxEndTime; // #9: clamp
-            }
             if (newEnd > roundEnd) {
                 roundEnd = newEnd;
-                emit TimerExtended(currentRound, newEnd, maxEndTime);
+                emit TimerExtended(currentRound, newEnd);
             }
         }
 
@@ -216,12 +206,15 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         uint256 winnerPayout = (potSize * WINNER_BPS) / BPS;
         uint256 burnPayout = (potSize * BURN_ON_END_BPS) / BPS;
         uint256 dividendsPayout = (potSize * DIVIDENDS_BPS) / BPS;
-        uint256 devPayout = (potSize * DEV_BPS) / BPS;
+        uint256 seedAmount = (potSize * NEXT_ROUND_SEED_BPS) / BPS;
 
         // #8: Track dust remainder
-        uint256 distributed = winnerPayout + burnPayout + dividendsPayout + devPayout;
+        uint256 distributed = winnerPayout + burnPayout + dividendsPayout + seedAmount;
         uint256 dust = potSize - distributed;
         dividendRemainder += dust;
+
+        // Seed the next round's pot (tokens stay in contract)
+        nextRoundSeed += seedAmount;
 
         // Record round result
         roundResults[currentRound] = RoundResult({
@@ -237,7 +230,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         clawd.safeTransfer(lastBuyer, winnerPayout);
         clawd.safeTransfer(DEAD, burnPayout);
         totalBurned += burnPayout;
-        clawd.safeTransfer(dev, devPayout);
 
         // Distribute dividends via points-per-share
         if (totalKeys > 0) {
@@ -299,7 +291,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         uint256 round,
         uint256 potSize,
         uint256 endTime,
-        uint256 hardMaxEnd,
         address lastBuyerAddr,
         uint256 keys,
         uint256 keyPrice,
@@ -309,7 +300,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         round = currentRound;
         potSize = pot;
         endTime = roundEnd;
-        hardMaxEnd = maxEndTime;
         lastBuyerAddr = lastBuyer;
         keys = totalKeys;
         keyPrice = BASE_PRICE + totalKeys * PRICE_INCREMENT;
@@ -356,9 +346,9 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         currentRound++;
         roundStart = block.timestamp;
         roundEnd = block.timestamp + timerDuration;
-        maxEndTime = block.timestamp + MAX_ROUND_LENGTH;
-        pot = dividendRemainder; // #8: carry forward dust
+        pot = dividendRemainder + nextRoundSeed; // #8: carry forward dust + seed from previous round
         dividendRemainder = 0;
+        nextRoundSeed = 0;
         totalKeys = 0;
         lastBuyer = address(0);
 
@@ -373,7 +363,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         currentRound++;
         roundStart = block.timestamp;
         roundEnd = block.timestamp + timerDuration;
-        maxEndTime = block.timestamp + MAX_ROUND_LENGTH;
         // pot carries over (if any), no distribution needed
         totalKeys = 0;
         lastBuyer = address(0);

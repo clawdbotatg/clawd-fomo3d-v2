@@ -13,7 +13,7 @@ import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <div className="flex flex-col min-h-screen scanlines" style={{ background: "#0a0a0a" }}>
+      <div className="flex flex-col min-h-screen scanlines" style={{ background: "#141414" }}>
         {/* Terminal grid background */}
         <div className="terminal-grid" />
         <Header />
@@ -23,9 +23,9 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
       <Toaster
         toastOptions={{
           style: {
-            background: "#111",
-            color: "#ff2222",
-            border: "1px solid rgba(255, 34, 34, 0.3)",
+            background: "#1a1a1a",
+            color: "#ff4444",
+            border: "1px solid rgba(255, 68, 68, 0.35)",
             fontFamily: "'JetBrains Mono', monospace",
             fontSize: "0.85rem",
           },
@@ -45,22 +45,22 @@ export const queryClient = new QueryClient({
 
 export const ScaffoldEthAppWithProviders = ({ children }: { children: React.ReactNode }) => {
   const redDarkTheme = darkTheme({
-    accentColor: "#ff2222",
-    accentColorForeground: "#0a0a0a",
+    accentColor: "#ff4444",
+    accentColorForeground: "#141414",
     borderRadius: "small",
     fontStack: "system",
   });
 
   // Override RainbowKit modal backgrounds
-  redDarkTheme.colors.modalBackground = "#111111";
-  redDarkTheme.colors.profileForeground = "#111111";
-  redDarkTheme.colors.connectButtonBackground = "#111111";
+  redDarkTheme.colors.modalBackground = "#1a1a1a";
+  redDarkTheme.colors.profileForeground = "#1a1a1a";
+  redDarkTheme.colors.connectButtonBackground = "#1a1a1a";
 
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider avatar={BlockieAvatar} theme={redDarkTheme}>
-          <ProgressBar height="2px" color="#ff2222" />
+          <ProgressBar height="2px" color="#ff4444" />
           <ScaffoldEthApp>{children}</ScaffoldEthApp>
         </RainbowKitProvider>
       </QueryClientProvider>

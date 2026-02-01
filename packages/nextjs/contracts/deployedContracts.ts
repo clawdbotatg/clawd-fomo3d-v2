@@ -6,8 +6,90 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   8453: {
+    CLAWD: {
+      address: "0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07",
+      abi: [
+        {
+          type: "function",
+          name: "allowance",
+          inputs: [
+            { name: "owner", type: "address", internalType: "address" },
+            { name: "spender", type: "address", internalType: "address" },
+          ],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "approve",
+          inputs: [
+            { name: "spender", type: "address", internalType: "address" },
+            { name: "amount", type: "uint256", internalType: "uint256" },
+          ],
+          outputs: [{ name: "", type: "bool", internalType: "bool" }],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "balanceOf",
+          inputs: [{ name: "account", type: "address", internalType: "address" }],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "transfer",
+          inputs: [
+            { name: "to", type: "address", internalType: "address" },
+            { name: "amount", type: "uint256", internalType: "uint256" },
+          ],
+          outputs: [{ name: "", type: "bool", internalType: "bool" }],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "transferFrom",
+          inputs: [
+            { name: "from", type: "address", internalType: "address" },
+            { name: "to", type: "address", internalType: "address" },
+            { name: "amount", type: "uint256", internalType: "uint256" },
+          ],
+          outputs: [{ name: "", type: "bool", internalType: "bool" }],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "totalSupply",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "name",
+          inputs: [],
+          outputs: [{ name: "", type: "string", internalType: "string" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "symbol",
+          inputs: [],
+          outputs: [{ name: "", type: "string", internalType: "string" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "decimals",
+          inputs: [],
+          outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+          stateMutability: "view",
+        },
+      ],
+      inheritedFunctions: {},
+    },
     ClawdFomo3D: {
-      address: "0xa5cd6e15f91ae84f5513a60c398f3c5e4c43e399",
+      address: "0x3AA727a5AA8F472020B5aF5b3b10371C79C7002c",
       abi: [
         {
           type: "constructor",
@@ -21,11 +103,6 @@ const deployedContracts = {
               name: "_timerDuration",
               type: "uint256",
               internalType: "uint256",
-            },
-            {
-              name: "_dev",
-              type: "address",
-              internalType: "address",
             },
             {
               name: "_initialPotCap",
@@ -128,19 +205,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "DEV_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
           name: "DIVIDENDS_BPS",
           inputs: [],
           outputs: [
@@ -180,7 +244,7 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "MAX_ROUND_LENGTH",
+          name: "NEXT_ROUND_SEED_BPS",
           inputs: [],
           outputs: [
             {
@@ -303,19 +367,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "dev",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
           name: "dividendRemainder",
           inputs: [],
           outputs: [
@@ -385,11 +436,6 @@ const deployedContracts = {
             },
             {
               name: "endTime",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "hardMaxEnd",
               type: "uint256",
               internalType: "uint256",
             },
@@ -500,7 +546,7 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "maxEndTime",
+          name: "nextRoundSeed",
           inputs: [],
           outputs: [
             {
@@ -995,12 +1041,6 @@ const deployedContracts = {
               indexed: false,
               internalType: "uint256",
             },
-            {
-              name: "maxEndTime",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
           ],
           anonymous: false,
         },
@@ -1067,7 +1107,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 41564485,
+      deployedOnBlock: 41583918,
     },
   },
 } as const;

@@ -9,7 +9,7 @@ import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaf
 import { notification } from "~~/utils/scaffold-eth";
 
 const CLAWD_TOKEN = "0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07";
-const FOMO3D_ADDRESS = "0xC0b703b935Add62fC7B60beb3B7e345b79603B8B";
+const FOMO3D_ADDRESS = "0x3AA727a5AA8F472020B5aF5b3b10371C79C7002c";
 const TARGET_CHAIN_ID = 8453;
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
@@ -19,11 +19,11 @@ const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 const TermDivider = () => <hr className="divider-red my-5" />;
 
 const TermLabel = ({ children }: { children: React.ReactNode }) => (
-  <span className="text-[#ff2222]/30 text-xs font-mono uppercase tracking-[0.2em]">{children}</span>
+  <span className="text-[#ff6666] text-xs font-mono uppercase tracking-[0.2em]">{children}</span>
 );
 
 const TermValue = ({ children, glow }: { children: React.ReactNode; glow?: boolean }) => (
-  <span className={`text-[#ff2222] font-mono font-bold ${glow ? "text-glow" : ""}`}>{children}</span>
+  <span className={`text-[#ff4444] font-mono font-bold ${glow ? "text-glow" : ""}`}>{children}</span>
 );
 
 export default function Home() {
@@ -340,7 +340,7 @@ export default function Home() {
           HERO — COUNTDOWN TIMER
          ═══════════════════════════════════════ */}
       <div className="w-full terminal-box corner-diamonds p-6 md:p-10 text-center mt-4">
-        <div className="text-[10px] tracking-[0.4em] uppercase text-[#ff2222]/30 mb-1">
+        <div className="text-[10px] tracking-[0.4em] uppercase text-[#ff4444]/70 mb-1">
           ◆ round {currentRound || "—"}{" "}
           {isAntiSnipe ? "// ANTI-SNIPE ACTIVE" : isRoundActive ? "// ACTIVE" : "// ENDED"} ◆
         </div>
@@ -349,12 +349,12 @@ export default function Home() {
           className={`text-6xl md:text-[8rem] font-mono font-black tracking-tight leading-none my-4 md:my-6 ${
             isAntiSnipe ? "text-glow-intense animate-flicker" : isRoundActive ? "text-glow" : ""
           }`}
-          style={{ color: isRoundActive ? "#ff2222" : "#ff2222aa" }}
+          style={{ color: "#ff4444" }}
         >
           {countdown || "--:--:--"}
         </div>
 
-        <div className="text-xs text-[#ff2222]/30 tracking-wider">
+        <div className="text-xs text-[#ff4444]/70 tracking-wider">
           {isRoundActive
             ? isAntiSnipe
               ? "!! UNDER 2 MIN — EVERY BUY EXTENDS THE TIMER !!"
@@ -363,9 +363,9 @@ export default function Home() {
         </div>
 
         {isAntiSnipe && (
-          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 border border-[#ff2222]/40 bg-[#ff2222]/5">
-            <div className="w-2 h-2 bg-[#ff2222] animate-pulse-ring rounded-full" />
-            <span className="text-[10px] text-[#ff2222] tracking-[0.3em] uppercase font-bold">ANTI-SNIPE</span>
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 border border-[#ff4444]/70 bg-[#ff4444]/15">
+            <div className="w-2 h-2 bg-[#ff4444] animate-pulse-ring rounded-full" />
+            <span className="text-[10px] text-[#ff4444] tracking-[0.3em] uppercase font-bold">ANTI-SNIPE</span>
           </div>
         )}
       </div>
@@ -376,14 +376,14 @@ export default function Home() {
           STATS — Terminal format
          ═══════════════════════════════════════ */}
       <div className="w-full terminal-box corner-diamonds p-5 md:p-6">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff2222]/25 mb-4">◆ round_stats</div>
+        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff4444]/65 mb-4">◆ round_stats</div>
 
         <div className="space-y-2 text-sm">
           <div className="flex justify-between items-baseline">
             <TermLabel>- pot_size</TermLabel>
             <div className="text-right">
               <TermValue glow>{roundInfo ? fmtC(roundInfo[1]) : "—"} CLAWD</TermValue>
-              <span className="text-[#ff2222]/20 text-xs ml-2">→ {roundInfo ? toUsd(roundInfo[1]) : ""}</span>
+              <span className="text-[#aaaaaa] text-xs ml-2">→ {roundInfo ? toUsd(roundInfo[1]) : ""}</span>
             </div>
           </div>
 
@@ -391,7 +391,7 @@ export default function Home() {
             <TermLabel>- key_price</TermLabel>
             <div className="text-right">
               <TermValue>{roundInfo ? fmtC(roundInfo[5]) : "—"} CLAWD</TermValue>
-              <span className="text-[#ff2222]/20 text-xs ml-2">→ {roundInfo ? toUsd(roundInfo[5]) : ""}</span>
+              <span className="text-[#aaaaaa] text-xs ml-2">→ {roundInfo ? toUsd(roundInfo[5]) : ""}</span>
             </div>
           </div>
 
@@ -404,7 +404,7 @@ export default function Home() {
             <TermLabel>- total_burned</TermLabel>
             <div className="text-right">
               <TermValue>{totalBurned !== undefined ? fmtC(totalBurned) : "—"} CLAWD</TermValue>
-              <span className="text-[#ff2222]/20 text-xs ml-2">
+              <span className="text-[#aaaaaa] text-xs ml-2">
                 → {totalBurned !== undefined ? toUsd(totalBurned) : ""}
               </span>
             </div>
@@ -434,7 +434,7 @@ export default function Home() {
               <Address address={roundInfo[3]} />
             </div>
           ) : (
-            <span className="text-[#ff2222]/20 text-sm">NO BUYERS YET</span>
+            <span className="text-[#ff4444]/60 text-sm">NO BUYERS YET</span>
           )}
         </div>
       </div>
@@ -445,19 +445,19 @@ export default function Home() {
           BUY KEYS
          ═══════════════════════════════════════ */}
       <div className="w-full terminal-box corner-diamonds p-5 md:p-6">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff2222]/25 mb-4">◆ buy_keys</div>
+        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff4444]/65 mb-4">◆ buy_keys</div>
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1">
-            <div className="text-xs text-[#ff2222]/30 mb-2">quantity (1-1000):</div>
+            <div className="text-xs text-[#ff4444]/70 mb-2">quantity (1-1000):</div>
             <input
               type="number"
               min="1"
               max="1000"
               value={numKeys}
               onChange={e => setNumKeys(e.target.value)}
-              className="w-full bg-transparent border border-[#ff2222]/20 px-4 py-3 text-center text-3xl font-bold text-[#ff2222] font-mono
-                         focus:outline-none focus:border-[#ff2222]/50 transition-all"
+              className="w-full bg-transparent border border-[#ff4444]/50 px-4 py-3 text-center text-3xl font-bold text-[#ff4444] font-mono
+                         focus:outline-none focus:border-[#ff4444]/80 transition-all"
               placeholder="1"
             />
 
@@ -468,8 +468,8 @@ export default function Home() {
                   key={n}
                   className={`flex-1 py-1.5 text-xs font-mono font-bold tracking-wider transition-all border ${
                     numKeys === String(n)
-                      ? "border-[#ff2222]/50 bg-[#ff2222]/10 text-[#ff2222]"
-                      : "border-[#ff2222]/10 text-[#ff2222]/30 hover:border-[#ff2222]/30 hover:text-[#ff2222]/60"
+                      ? "border-[#ff4444]/70 bg-[#ff4444]/25 text-[#ff4444]"
+                      : "border-[#ff4444]/35 text-[#ff4444]/65 hover:border-[#ff4444]/55 hover:text-[#ff4444]/85"
                   }`}
                   onClick={() => setNumKeys(String(n))}
                 >
@@ -484,18 +484,18 @@ export default function Home() {
                   <TermLabel>- cost</TermLabel>
                   <div>
                     <TermValue>{fmtCP(cost)} CLAWD</TermValue>
-                    <span className="text-[#ff2222]/20 text-xs ml-2">→ {toUsd(cost)}</span>
+                    <span className="text-[#aaaaaa] text-xs ml-2">→ {toUsd(cost)}</span>
                   </div>
                 </div>
                 <div className="flex justify-between">
                   <TermLabel>- burn (10%)</TermLabel>
-                  <span className="text-[#ff2222]/40 text-xs">{fmtC((cost * 10n) / 100n)} CLAWD</span>
+                  <span className="text-[#ff6666] text-xs">{fmtC((cost * 10n) / 100n)} CLAWD</span>
                 </div>
               </div>
             )}
 
             {address && clawdBalance !== undefined && (
-              <div className="text-[10px] text-[#ff2222]/20 mt-3 tracking-wider">
+              <div className="text-[10px] text-[#aaaaaa] mt-3 tracking-wider">
                 balance: {fmtC(clawdBalance)} CLAWD ({toUsd(clawdBalance)})
               </div>
             )}
@@ -531,7 +531,7 @@ export default function Home() {
             )}
 
             {needsApproval && (
-              <div className="text-[10px] text-[#ff2222]/15 text-center tracking-wider">one-time approval required</div>
+              <div className="text-[10px] text-[#ff4444]/55 text-center tracking-wider">one-time approval required</div>
             )}
           </div>
         </div>
@@ -544,7 +544,7 @@ export default function Home() {
         <>
           <TermDivider />
           <div className="w-full terminal-box corner-diamonds p-5">
-            <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff2222]/25 mb-4">
+            <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff4444]/65 mb-4">
               ◆ your_stats // round {currentRound}
             </div>
 
@@ -557,12 +557,12 @@ export default function Home() {
                 <TermLabel>- pending_divs</TermLabel>
                 <div>
                   <TermValue glow>{playerInfo ? fmtC(playerInfo[1]) : "0"} CLAWD</TermValue>
-                  <span className="text-[#ff2222]/20 text-xs ml-2">→ {playerInfo ? toUsd(playerInfo[1]) : ""}</span>
+                  <span className="text-[#aaaaaa] text-xs ml-2">→ {playerInfo ? toUsd(playerInfo[1]) : ""}</span>
                 </div>
               </div>
               <div className="flex justify-between">
                 <TermLabel>- claimed</TermLabel>
-                <span className="text-[#ff2222]/40">{playerInfo ? fmtC(playerInfo[2]) : "0"} CLAWD</span>
+                <span className="text-[#ff6666]">{playerInfo ? fmtC(playerInfo[2]) : "0"} CLAWD</span>
               </div>
             </div>
 
@@ -580,7 +580,7 @@ export default function Home() {
           {/* Previous round dividends */}
           {currentRound > 1 && prevPlayerInfo && prevPlayerInfo[0] > 0n && (
             <div className="w-full terminal-box p-5 mt-3">
-              <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff2222]/25 mb-4">
+              <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff4444]/65 mb-4">
                 ◆ dividends // round {currentRound - 1}
               </div>
               <div className="space-y-2 text-sm">
@@ -594,7 +594,7 @@ export default function Home() {
                 </div>
                 <div className="flex justify-between">
                   <TermLabel>- claimed</TermLabel>
-                  <span className="text-[#ff2222]/40">{fmtC(prevPlayerInfo[2])} CLAWD</span>
+                  <span className="text-[#ff6666]">{fmtC(prevPlayerInfo[2])} CLAWD</span>
                 </div>
               </div>
               {prevPlayerInfo[1] > 0n && (
@@ -618,8 +618,8 @@ export default function Home() {
         <>
           <TermDivider />
           <div className="w-full terminal-box p-5 text-center">
-            <div className="text-sm text-[#ff2222] font-bold mb-2 text-glow-subtle">!! ROUND TERMINATED !!</div>
-            <div className="text-xs text-[#ff2222]/25 mb-4">
+            <div className="text-sm text-[#ff4444] font-bold mb-2 text-glow-subtle">!! ROUND TERMINATED !!</div>
+            <div className="text-xs text-[#ff4444]/65 mb-4">
               60s grace for last buyer, then anyone can call endRound()
             </div>
             {wrongNetwork ? (
@@ -641,7 +641,7 @@ export default function Home() {
           POT DISTRIBUTION
          ═══════════════════════════════════════ */}
       <div className="w-full terminal-box corner-diamonds p-5">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff2222]/25 mb-4">◆ pot_distribution</div>
+        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff4444]/65 mb-4">◆ pot_distribution</div>
 
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
@@ -661,7 +661,7 @@ export default function Home() {
             <TermValue>5%</TermValue>
           </div>
         </div>
-        <div className="text-[10px] text-[#ff2222]/15 mt-3 tracking-wider text-center">
+        <div className="text-[10px] text-[#ff4444]/55 mt-3 tracking-wider text-center">
           + 10% of every key purchase is burned on buy
         </div>
       </div>
@@ -673,11 +673,11 @@ export default function Home() {
         <>
           <TermDivider />
           <div className="w-full terminal-box p-5">
-            <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff2222]/25 mb-4">◆ round_history</div>
+            <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff4444]/65 mb-4">◆ round_history</div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs font-mono">
                 <thead>
-                  <tr className="text-[#ff2222]/25 border-b border-[#ff2222]/10">
+                  <tr className="text-[#ff4444]/65 border-b border-[#ff4444]/40">
                     <th className="text-left py-2 pr-3">RND</th>
                     <th className="text-left py-2 pr-3">WINNER</th>
                     <th className="text-right py-2 pr-3">POT</th>
@@ -690,13 +690,13 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {roundHistory.map(r => (
-                    <tr key={r.round} className="border-b border-[#ff2222]/5 text-[#ff2222]/50">
-                      <td className="py-2 pr-3 text-[#ff2222]/70">#{r.round}</td>
+                    <tr key={r.round} className="border-b border-[#ff4444]/25 text-[#ff4444]/80">
+                      <td className="py-2 pr-3 text-[#ff4444]/90">#{r.round}</td>
                       <td className="py-2 pr-3">
                         <Address address={r.winner} />
                       </td>
                       <td className="text-right py-2 pr-3">{fmtC(r.potSize)}</td>
-                      <td className="text-right py-2 pr-3 text-[#ff2222]/70">{fmtC(r.winnerPayout)}</td>
+                      <td className="text-right py-2 pr-3 text-[#ff4444]/90">{fmtC(r.winnerPayout)}</td>
                       <td className="text-right py-2 pr-3">{fmtC(r.burned)}</td>
                       <td className="text-right py-2">{Number(r.totalKeys).toLocaleString()}</td>
                       {address && <td className="text-right py-2 pl-3">{Number(r.playerKeys).toLocaleString()}</td>}
@@ -711,11 +711,11 @@ export default function Home() {
                               {claimingRound === r.round ? "..." : `CLAIM ${fmtC(r.playerPending)}`}
                             </button>
                           ) : r.playerWithdrawn > 0n ? (
-                            <span className="text-[#ff2222]/30">✓ {fmtC(r.playerWithdrawn)}</span>
+                            <span className="text-[#ff4444]/70">✓ {fmtC(r.playerWithdrawn)}</span>
                           ) : r.playerKeys > 0n ? (
-                            <span className="text-[#ff2222]/15">none</span>
+                            <span className="text-[#ff4444]/50">none</span>
                           ) : (
-                            <span className="text-[#ff2222]/10">—</span>
+                            <span className="text-[#ff4444]/40">—</span>
                           )}
                         </td>
                       )}
@@ -734,23 +734,23 @@ export default function Home() {
           HOW IT WORKS
          ═══════════════════════════════════════ */}
       <div className="w-full terminal-box corner-diamonds p-5">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff2222]/25 mb-4">◆ protocol</div>
+        <div className="text-[10px] tracking-[0.3em] uppercase text-[#ff4444]/65 mb-4">◆ protocol</div>
 
-        <div className="space-y-4 text-xs text-[#ff2222]/40">
+        <div className="space-y-4 text-xs text-[#dd8888]">
           <div>
-            <span className="text-[#ff2222]/60 font-bold">01.</span> buy_keys
+            <span className="text-[#ff4444] font-bold">01.</span> buy_keys
             <div className="ml-4 mt-1">
               spend $CLAWD → acquire keys. price increases per key (bonding curve). 10% burned per buy.
             </div>
           </div>
           <div>
-            <span className="text-[#ff2222]/60 font-bold">02.</span> reset_timer
+            <span className="text-[#ff4444] font-bold">02.</span> reset_timer
             <div className="ml-4 mt-1">
               each purchase resets countdown → you become leader. anti-snipe extends timer if bought &lt;2min.
             </div>
           </div>
           <div>
-            <span className="text-[#ff2222]/60 font-bold">03.</span> win_pot
+            <span className="text-[#ff4444] font-bold">03.</span> win_pot
             <div className="ml-4 mt-1">
               timer expires → last buyer wins 40%. 30% burned. 25% dividends to key holders. 5% seeds next round.
             </div>
@@ -763,7 +763,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           FOOTER INFO
          ═══════════════════════════════════════ */}
-      <div className="w-full text-center space-y-2 text-[10px] text-[#ff2222]/15 tracking-wider font-mono">
+      <div className="w-full text-center space-y-2 text-[10px] text-[#ff4444]/55 tracking-wider font-mono">
         <div>$CLAWD → ${clawdPrice.toFixed(6)} USD</div>
         <div className="flex items-center justify-center gap-2 flex-wrap">
           <span>contract:</span> <Address address={FOMO3D_ADDRESS} />

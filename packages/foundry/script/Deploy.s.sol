@@ -8,17 +8,14 @@ contract DeployScript is ScaffoldETHDeploy {
     function run() external ScaffoldEthDeployerRunner {
         // CLAWD token address on Base
         address clawdToken = 0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07;
-        // Dev address (deployer wallet)
-        address devAddr = deployer;
-        // Timer: 1 hour (3600 seconds)
-        uint256 timerDuration = 1 hours;
+        // Timer: 5 minutes (300 seconds)
+        uint256 timerDuration = 5 minutes;
         // Trial round pot cap: 1M CLAWD (18 decimals)
         uint256 initialPotCap = 1_000_000 * 1e18;
 
         ClawdFomo3D game = new ClawdFomo3D(
             clawdToken,
             timerDuration,
-            devAddr,
             initialPotCap
         );
 
