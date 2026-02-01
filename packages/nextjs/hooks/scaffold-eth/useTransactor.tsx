@@ -4,8 +4,8 @@ import { getPublicClient } from "wagmi/actions";
 import { SendTransactionMutate } from "wagmi/query";
 import scaffoldConfig from "~~/scaffold.config";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
-import { AllowedChainIds, getBlockExplorerTxLink, notification } from "~~/utils/scaffold-eth";
-import { TransactorFuncOptions, getParsedErrorWithAllAbis } from "~~/utils/scaffold-eth/contract";
+import { getBlockExplorerTxLink, notification } from "~~/utils/scaffold-eth";
+import { TransactorFuncOptions } from "~~/utils/scaffold-eth/contract";
 
 type TransactionFunc = (
   tx: (() => Promise<Hash>) | Parameters<SendTransactionMutate<Config, undefined>>[0],
@@ -96,15 +96,11 @@ export const useTransactor = (_walletClient?: WalletClient): TransactionFunc => 
         notification.remove(notificationId);
       }
       console.error("⚡️ ~ file: useTransactor.ts ~ error", error);
-      const message = getParsedErrorWithAllAbis(error, chainId as AllowedChainIds);
 
-      // if receipt was reverted, show notification with block explorer link and return error
-      if (transactionReceipt?.status === "reverted") {
-        notification.error(<TxnNotification message={message} blockExplorerLink={blockExplorerTxURL} />);
-        throw error;
-      }
-
-      notification.error(message);
+      // Don't show notification here — let the caller's catch block handle
+      // error display with its own decodeError() for better UX.
+      // Previously this showed a raw/ugly error toast AND re-threw,
+      // causing duplicate notifications.
       throw error;
     }
 

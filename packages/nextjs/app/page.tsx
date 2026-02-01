@@ -5,11 +5,14 @@ import { Address } from "@scaffold-ui/components";
 import { formatEther } from "viem";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { useLobsterConfetti } from "~~/components/LobsterConfetti";
+import deployedContracts from "~~/contracts/deployedContracts";
+import externalContracts from "~~/contracts/externalContracts";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
-const CLAWD_TOKEN = "0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07";
-const FOMO3D_ADDRESS = "0xE9cF6C27a456618987cc603EbF6C4866B9dC888F";
+// Addresses from contract configs — never hardcode
+const CLAWD_TOKEN = externalContracts[8453].CLAWD.address;
+const FOMO3D_ADDRESS = deployedContracts[8453].ClawdFomo3D.address;
 const TARGET_CHAIN_ID = 8453;
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 const POLL_MS = 3000;

@@ -1,6 +1,5 @@
 import { getParsedError } from "./getParsedError";
 import { AllowedChainIds } from "./networks";
-import { notification } from "./notification";
 import { MutateOptions } from "@tanstack/react-query";
 import {
   Abi,
@@ -354,17 +353,21 @@ export const getParsedErrorWithAllAbis = (error: any, chainId: AllowedChainIds):
     }
 
     try {
-      // Get all deployed contracts for the current chain
-      const chainContracts = deployedContractsData[chainId as keyof typeof deployedContractsData];
+      // Get contracts from BOTH deployed and external sources
+      const deployedChainContracts = deployedContractsData[chainId as keyof typeof deployedContractsData] || {};
+      const externalChainContracts = externalContractsData[chainId as keyof typeof externalContractsData] || {};
 
-      if (!chainContracts) {
+      // Merge all contracts for this chain
+      const allChainContracts = { ...deployedChainContracts, ...externalChainContracts };
+
+      if (Object.keys(allChainContracts).length === 0) {
         return originalParsedError;
       }
 
       // Build a lookup table of error signatures to error names
       const errorLookup: Record<string, { name: string; contract: string; signature: string }> = {};
 
-      Object.entries(chainContracts).forEach(([contractName, contract]: [string, any]) => {
+      Object.entries(allChainContracts).forEach(([contractName, contract]: [string, any]) => {
         if (contract.abi) {
           contract.abi.forEach((item: any) => {
             if (item.type === "error") {
@@ -404,21 +407,19 @@ export const getParsedErrorWithAllAbis = (error: any, chainId: AllowedChainIds):
   return originalParsedError;
 };
 
-export const simulateContractWriteAndNotifyError = async ({
-  wagmiConfig,
-  writeContractParams: params,
-  chainId,
-}: {
+export const simulateContractWriteAndNotifyError = async (args: {
   wagmiConfig: Config;
   writeContractParams: WriteContractVariables<Abi, string, any[], Config, number>;
   chainId: AllowedChainIds;
 }) => {
+  const { wagmiConfig, writeContractParams: params } = args;
   try {
     await simulateContract(wagmiConfig, params);
   } catch (error) {
-    const parsedError = getParsedErrorWithAllAbis(error, chainId);
-
-    notification.error(parsedError);
+    // Don't show notification here — let the caller's catch block handle
+    // error display with its own decodeError() for better UX.
+    // Previously this showed a raw/ugly error toast AND re-threw,
+    // causing duplicate notifications.
     throw error;
   }
 };
