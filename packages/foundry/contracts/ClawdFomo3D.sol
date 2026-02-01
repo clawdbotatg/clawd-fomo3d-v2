@@ -22,8 +22,6 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
  *   #11 - Round deadlock fix (endRound resets if no buys)
  *   #12 - Per-buy dividend distribution (v7 fix — core Fomo3D mechanic)
  *
- * Trial round: configurable max pot size cap.
- *
  * v7 dividend flow:
  *   On each buy: 10% burned, 25% of after-burn to existing key holders, 75% of after-burn to pot.
  *   On round end: pot split 50% winner / 20% burn / 25% dividends (bonus) / 5% next round seed.
@@ -65,9 +63,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     address public lastBuyer;
     uint256 public totalBurned;
 
-    // Trial round pot cap
-    uint256 public potCap;               // 0 = no cap
-
     // Dividend tracking (points-per-share)
     uint256 public pointsPerKey;
     uint256 internal constant MAGNITUDE = 2**128;
@@ -102,13 +97,11 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     event DividendsClaimed(uint256 indexed round, address indexed player, uint256 amount);
     event RoundStarted(uint256 indexed round, uint256 endTime);
     event TimerExtended(uint256 indexed round, uint256 newEndTime);
-    event PotCapUpdated(uint256 newCap);
 
     // ============ Constructor ============
     constructor(
         address _clawd,
-        uint256 _timerDuration,
-        uint256 _initialPotCap
+        uint256 _timerDuration
     ) Ownable(msg.sender) {
         // #7: Constructor validation
         require(_clawd != address(0), "CLAWD address cannot be zero");
@@ -116,7 +109,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
 
         clawd = IERC20(_clawd);
         timerDuration = _timerDuration;
-        potCap = _initialPotCap;
 
         currentRound = 1;
         roundStart = block.timestamp;
@@ -136,12 +128,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         _unpause();
     }
 
-    /// @notice Update pot cap for future/current rounds
-    function setPotCap(uint256 _newCap) external onlyOwner {
-        potCap = _newCap;
-        emit PotCapUpdated(_newCap);
-    }
-
     // ============ Core Game ============
 
     /// @notice Buy keys with CLAWD tokens
@@ -149,11 +135,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     function buyKeys(uint256 numKeys) external nonReentrant whenNotPaused {
         require(numKeys > 0 && numKeys <= MAX_KEYS_PER_BUY, "Invalid key count");
         require(block.timestamp < roundEnd, "Round ended");
-
-        // Trial round: check pot cap
-        if (potCap > 0) {
-            require(pot < potCap, "Pot cap reached, wait for round to end");
-        }
 
         // Calculate cost using bonding curve: sum of (BASE_PRICE + i * INCREMENT) for i = totalKeys..totalKeys+numKeys-1
         uint256 cost = _calculateCost(numKeys);
@@ -309,8 +290,7 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         address lastBuyerAddr,
         uint256 keys,
         uint256 keyPrice,
-        bool isActive,
-        uint256 potCapValue
+        bool isActive
     ) {
         round = currentRound;
         potSize = pot;
@@ -319,18 +299,11 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         keys = totalKeys;
         keyPrice = BASE_PRICE + totalKeys * PRICE_INCREMENT;
         isActive = block.timestamp < roundEnd;
-        potCapValue = potCap;
     }
 
     /// @notice Get round result
     function getRoundResult(uint256 round) external view returns (RoundResult memory) {
         return roundResults[round];
-    }
-
-    /// @notice Check if pot cap is reached
-    function isPotCapReached() external view returns (bool) {
-        if (potCap == 0) return false;
-        return pot >= potCap;
     }
 
     // ============ Internal ============

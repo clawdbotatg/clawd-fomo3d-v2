@@ -26,11 +26,10 @@ contract ClawdFomo3DTest is Test {
     address public carol = address(0xCA201);
 
     uint256 public constant TIMER = 1 hours;
-    uint256 public constant POT_CAP = 1_000_000 * 1e18;
 
     function setUp() public {
         clawd = new MockCLAWD();
-        game = new ClawdFomo3D(address(clawd), TIMER, POT_CAP);
+        game = new ClawdFomo3D(address(clawd), TIMER);
 
         // Fund players
         clawd.transfer(alice, 10_000_000 * 1e18);
@@ -445,25 +444,6 @@ contract ClawdFomo3DTest is Test {
         uint256 deadAfter = clawd.balanceOf(dead);
 
         assertEq(deadAfter - deadBefore, expectedBurn, "20% burned at round end");
-    }
-
-    function test_PotCapEnforced() public {
-        // Buy until we hit the pot cap
-        // Use try/catch to find when cap is reached
-        bool capHit = false;
-        for (uint256 i = 0; i < 100; i++) {
-            if (game.isPotCapReached()) {
-                capHit = true;
-                break;
-            }
-            _buyKeys(alice, 100);
-        }
-        assertTrue(capHit, "Pot cap should have been reached");
-
-        // Now verify buying is blocked
-        vm.prank(bob);
-        vm.expectRevert("Pot cap reached, wait for round to end");
-        game.buyKeys(1);
     }
 
     function test_PerBuyDividendsDuringRound() public {

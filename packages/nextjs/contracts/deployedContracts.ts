@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   8453: {
     ClawdFomo3D: {
-      address: "0xe9cf6c27a456618987cc603ebf6c4866b9dc888f",
+      address: "0x861e96c70a94cdebfb3fb89f3a96fe16b5e31891",
       abi: [
         {
           type: "constructor",
@@ -19,11 +19,6 @@ const deployedContracts = {
             },
             {
               name: "_timerDuration",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_initialPotCap",
               type: "uint256",
               internalType: "uint256",
             },
@@ -390,11 +385,6 @@ const deployedContracts = {
               type: "bool",
               internalType: "bool",
             },
-            {
-              name: "potCapValue",
-              type: "uint256",
-              internalType: "uint256",
-            },
           ],
           stateMutability: "view",
         },
@@ -445,19 +435,6 @@ const deployedContracts = {
                   internalType: "uint256",
                 },
               ],
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "isPotCapReached",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
             },
           ],
           stateMutability: "view",
@@ -607,19 +584,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "potCap",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
           name: "renounceOwnership",
           inputs: [],
           outputs: [],
@@ -713,19 +677,6 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "setPotCap",
-          inputs: [
-            {
-              name: "_newCap",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
         },
         {
           type: "function",
@@ -882,19 +833,6 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "PotCapUpdated",
-          inputs: [
-            {
-              name: "newCap",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
           name: "RoundEnded",
           inputs: [
             {
@@ -1038,7 +976,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 41589725,
+      deployedOnBlock: 41589814,
     },
   },
 } as const;
