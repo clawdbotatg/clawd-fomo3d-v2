@@ -6,7 +6,7 @@ import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "CLAWD Fomo3D — Last Buyer Wins",
+  title: "ClawFomo.com — Last Buyer Wins",
   description: "FOMO3D king-of-the-hill game with $CLAWD on Base. Buy keys, reset the timer, win the pot!",
 });
 

@@ -86,7 +86,7 @@ export const Header = () => {
         <Link href="/" passHref className="hidden lg:flex items-center gap-3 ml-4 mr-6 shrink-0 group">
           <div className="flex flex-col">
             <span className="font-extrabold leading-tight text-lg text-[#ff4444] text-glow-subtle tracking-wider font-mono">
-              ◆ CLAWD_FOMO3D
+              ◆ ClawFomo<span className="text-[#ff4444]/50 text-sm">.com</span>
             </span>
             <span className="text-[10px] text-[#ff4444]/70 font-mono tracking-[0.3em] uppercase">
               last_buyer_wins_the_pot
