@@ -663,17 +663,23 @@ export default function Home() {
             </div>
 
             {cost && (
-              <div className="mt-4 space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <TermLabel>cost</TermLabel>
-                  <div>
-                    <TermValue>{fmtCP(cost)} CLAWD</TermValue>
-                    <span className="text-[#8b7aaa] text-xs ml-2">→ {toUsd(cost)}</span>
+              <div className="mt-4 space-y-2">
+                <div className="text-center py-3 px-4 rounded-xl bg-[#7c3aed]/10 border border-[#7c3aed]/30">
+                  <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-1">cost</div>
+                  <div
+                    className="text-3xl md:text-5xl font-black font-mono tracking-tight text-glow"
+                    style={{ color: "#f0e6ff" }}
+                  >
+                    {fmtCP(cost)} CLAWD
+                  </div>
+                  <div className="text-xl md:text-2xl font-bold font-mono mt-1" style={{ color: "#8b7aaa" }}>
+                    → {toUsd(cost)}
                   </div>
                 </div>
-                <div className="flex justify-between">
-                  <TermLabel>burn (10%)</TermLabel>
-                  <span className="text-[#f97316] text-xs">🔥 {fmtC((cost * 10n) / 100n)} CLAWD</span>
+                <div className="flex justify-center">
+                  <span className="text-[#f97316] text-xs font-mono">
+                    🔥 {fmtC((cost * 10n) / 100n)} CLAWD burned on buy
+                  </span>
                 </div>
               </div>
             )}
@@ -714,7 +720,7 @@ export default function Home() {
                     ? "POT CAP REACHED"
                     : !isRoundActive
                       ? "ROUND ENDED"
-                      : `👑 SNATCH THE CROWN`}
+                      : `SNATCH THE 👑`}
               </button>
             )}
 
