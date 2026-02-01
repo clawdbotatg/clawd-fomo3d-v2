@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Address } from "@scaffold-ui/components";
-import { formatEther, maxUint256 } from "viem";
+import { formatEther } from "viem";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { useLobsterConfetti } from "~~/components/LobsterConfetti";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
@@ -42,6 +42,7 @@ export default function Home() {
   const [clawdPrice, setClawdPrice] = useState(0);
   const [countdown, setCountdown] = useState("");
   const [timeLeft, setTimeLeft] = useState(0);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
   // ============ Contract Reads ============
   const { data: roundInfo } = useScaffoldReadContract({
@@ -274,7 +275,7 @@ export default function Home() {
   const handleApprove = async (e: React.MouseEvent) => {
     setIsApproving(true);
     try {
-      await writeClawd({ functionName: "approve", args: [FOMO3D_ADDRESS, maxUint256] });
+      await writeClawd({ functionName: "approve", args: [FOMO3D_ADDRESS, cost! * 5n] });
       notification.success("CLAWD APPROVED ✅");
       fireConfetti(e);
     } catch (err: any) {
@@ -340,6 +341,60 @@ export default function Home() {
       onClick={e => triggerConfetti(e.clientX, e.clientY)}
     >
       {/* ═══════════════════════════════════════
+          DISCLAIMER — EXPERIMENTAL SOFTWARE
+         ═══════════════════════════════════════ */}
+      {!disclaimerAccepted && (
+        <div
+          className="w-full mb-4 mt-2 border-2 border-[#ff2222] bg-[#1a0000] p-5 md:p-6 font-mono relative"
+          style={{
+            boxShadow: "0 0 20px rgba(255,34,34,0.25), inset 0 0 30px rgba(255,34,34,0.08)",
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Blinking warning header */}
+          <div
+            className="text-center text-sm md:text-base font-black tracking-[0.3em] uppercase mb-4 animate-pulse"
+            style={{ color: "#ff2222", textShadow: "0 0 15px rgba(255,34,34,0.9), 0 0 30px rgba(255,34,34,0.5)" }}
+          >
+            ⚠ WARNING — EXPERIMENTAL SOFTWARE ⚠
+          </div>
+
+          <div className="border-t border-[#ff2222]/40 mb-4" />
+
+          <div className="text-xs md:text-sm text-[#ff6666]/90 leading-relaxed space-y-3">
+            <p>
+              This entire application was built by an AI agent (<span className="text-[#ff4444] font-bold">Clawd</span>
+              ). The smart contracts are <span className="text-[#ff2222] font-bold uppercase">unaudited</span> and
+              untested in production. This is an experiment, not a product. Expect bugs.
+            </p>
+            <p>
+              By connecting your wallet and interacting with this protocol, you accept{" "}
+              <span className="text-[#ff4444] font-bold">full responsibility</span> for your actions and any resulting
+              losses. You will probably lose your tokens.
+            </p>
+            <p>This is not financial advice. We are not lawyers. DYOR. Use at your own risk.</p>
+          </div>
+
+          <div className="border-t border-[#ff2222]/40 mt-4 mb-4" />
+
+          <div className="text-center">
+            <button
+              className="px-8 py-3 font-mono font-black text-sm tracking-[0.2em] uppercase
+                         border-2 border-[#ff2222] text-[#ff2222] bg-[#ff2222]/10
+                         hover:bg-[#ff2222]/25 hover:scale-105 active:scale-95
+                         transition-all duration-150 cursor-pointer
+                         shadow-[0_0_15px_rgba(255,34,34,0.3)]
+                         hover:shadow-[0_0_25px_rgba(255,34,34,0.5)]"
+              style={{ textShadow: "0 0 8px rgba(255,34,34,0.7)" }}
+              onClick={() => setDisclaimerAccepted(true)}
+            >
+              [ I UNDERSTAND THE RISKS ]
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════
           HERO — COUNTDOWN TIMER
          ═══════════════════════════════════════ */}
       <div className="w-full terminal-box corner-diamonds p-6 md:p-10 text-center mt-4">
@@ -370,6 +425,35 @@ export default function Home() {
             <div className="w-2 h-2 bg-[#ff4444] animate-pulse-ring rounded-full" />
             <span className="text-[10px] text-[#ff4444] tracking-[0.3em] uppercase font-bold">ANTI-SNIPE</span>
           </div>
+        )}
+      </div>
+
+      {/* ═══════════════════════════════════════
+          BUY $CLAWD CTA
+         ═══════════════════════════════════════ */}
+      <div className="w-full flex flex-col md:flex-row items-center justify-center gap-3 my-4">
+        <a
+          href="https://app.uniswap.org/swap?outputCurrency=0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07&chain=base"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block px-8 py-3 text-lg font-mono font-black tracking-[0.15em] uppercase
+                     border-2 border-[#ff2222] text-[#ff2222] bg-[#ff2222]/10
+                     hover:bg-[#ff2222]/25 hover:scale-105 active:scale-95
+                     transition-all duration-150 cursor-pointer
+                     shadow-[0_0_20px_rgba(255,34,34,0.4),inset_0_0_20px_rgba(255,34,34,0.1)]
+                     hover:shadow-[0_0_30px_rgba(255,34,34,0.6),inset_0_0_30px_rgba(255,34,34,0.15)]"
+          style={{ textShadow: "0 0 10px rgba(255,34,34,0.8)" }}
+          onClick={e => e.stopPropagation()}
+        >
+          {">> BUY $CLAWD <<"}
+        </a>
+        {address && clawdBalance !== undefined && (
+          <span
+            className="text-[#ff4444] font-mono text-sm tracking-wider"
+            style={{ textShadow: "0 0 8px rgba(255,34,34,0.5)" }}
+          >
+            YOUR_BALANCE: <span className="font-bold text-glow">{fmtC(clawdBalance)}</span> CLAWD
+          </span>
         )}
       </div>
 
