@@ -1,42 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Address } from "@scaffold-ui/components";
-import { formatEther } from "viem";
+import { formatEther, maxUint256 } from "viem";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useLobsterConfetti } from "~~/components/LobsterConfetti";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
 const CLAWD_TOKEN = "0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07";
-const TARGET_CHAIN_ID = 8453; // Base
+const FOMO3D_ADDRESS = "0xC0b703b935Add62fC7B60beb3B7e345b79603B8B";
+const TARGET_CHAIN_ID = 8453;
+const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
 export default function Home() {
   const { address } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
+  const { trigger: triggerConfetti } = useLobsterConfetti();
+  const buyBtnRef = useRef<HTMLButtonElement>(null);
 
   const [numKeys, setNumKeys] = useState("1");
   const [isSwitching, setIsSwitching] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
-  const [isClaiming, setIsClaiming] = useState(false);
+  const [claimingRound, setClaimingRound] = useState<number | null>(null);
   const [clawdPrice, setClawdPrice] = useState(0);
   const [countdown, setCountdown] = useState("");
-  const [antiSnipeFlash] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
 
-  // Read round info
+  // ============ Contract Reads ============
+
   const { data: roundInfo } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
     functionName: "getRoundInfo",
   });
 
-  // Read total burned
   const { data: totalBurned } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
     functionName: "totalBurned",
   });
 
-  // Read cost for numKeys
   const keysNum = parseInt(numKeys) || 0;
   const { data: cost } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
@@ -44,31 +49,151 @@ export default function Home() {
     args: [BigInt(keysNum > 0 ? keysNum : 1)],
   });
 
-  // Read player info
   const currentRound = roundInfo ? Number(roundInfo[0]) : 0;
+
   const { data: playerInfo } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
     functionName: "getPlayer",
-    args: [BigInt(currentRound || 1), address || "0x0000000000000000000000000000000000000000"],
+    args: [BigInt(currentRound || 1), address || ZERO_ADDR],
   });
 
-  // Past round results
-  const { data: prevRoundResult } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundResult",
-    args: [BigInt(currentRound > 1 ? currentRound - 1 : 0)],
-  });
-
-  // Pot cap check
   const { data: isPotCapReached } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
     functionName: "isPotCapReached",
   });
 
-  // Write contracts
-  const { writeContractAsync: writeFomo } = useScaffoldWriteContract({ contractName: "ClawdFomo3D" });
+  const { data: clawdAllowance } = useScaffoldReadContract({
+    contractName: "CLAWD",
+    functionName: "allowance",
+    args: [address || ZERO_ADDR, FOMO3D_ADDRESS],
+  });
 
-  // Fetch CLAWD price from DexScreener
+  const { data: clawdBalance } = useScaffoldReadContract({
+    contractName: "CLAWD",
+    functionName: "balanceOf",
+    args: [address || ZERO_ADDR],
+  });
+
+  // ============ Contract Writes ============
+  const { writeContractAsync: writeFomo } = useScaffoldWriteContract({ contractName: "ClawdFomo3D" });
+  const { writeContractAsync: writeClawd } = useScaffoldWriteContract({ contractName: "CLAWD" });
+
+  // ============ Round History ============
+  const [roundHistory, setRoundHistory] = useState<
+    Array<{
+      round: number;
+      winner: string;
+      potSize: bigint;
+      winnerPayout: bigint;
+      burned: bigint;
+      totalKeys: bigint;
+      endTime: bigint;
+      playerKeys: bigint;
+      playerPending: bigint;
+      playerWithdrawn: bigint;
+    }>
+  >([]);
+
+  const { data: prevPlayerInfo } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getPlayer",
+    args: [BigInt(currentRound > 1 ? currentRound - 1 : 1), address || ZERO_ADDR],
+  });
+
+  const { data: round1Result } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getRoundResult",
+    args: [1n],
+  });
+  const { data: round2Result } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getRoundResult",
+    args: [2n],
+  });
+  const { data: round3Result } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getRoundResult",
+    args: [3n],
+  });
+  const { data: round4Result } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getRoundResult",
+    args: [4n],
+  });
+  const { data: round5Result } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getRoundResult",
+    args: [5n],
+  });
+
+  const { data: round1Player } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getPlayer",
+    args: [1n, address || ZERO_ADDR],
+  });
+  const { data: round2Player } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getPlayer",
+    args: [2n, address || ZERO_ADDR],
+  });
+  const { data: round3Player } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getPlayer",
+    args: [3n, address || ZERO_ADDR],
+  });
+  const { data: round4Player } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getPlayer",
+    args: [4n, address || ZERO_ADDR],
+  });
+  const { data: round5Player } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getPlayer",
+    args: [5n, address || ZERO_ADDR],
+  });
+
+  useEffect(() => {
+    if (!currentRound) return;
+    const results = [
+      { round: 1, result: round1Result, player: round1Player },
+      { round: 2, result: round2Result, player: round2Player },
+      { round: 3, result: round3Result, player: round3Player },
+      { round: 4, result: round4Result, player: round4Player },
+      { round: 5, result: round5Result, player: round5Player },
+    ];
+
+    const history = results
+      .filter(r => r.round < currentRound && r.result && r.result.winner !== ZERO_ADDR)
+      .map(r => ({
+        round: r.round,
+        winner: r.result!.winner,
+        potSize: r.result!.potSize,
+        winnerPayout: r.result!.winnerPayout,
+        burned: r.result!.burned,
+        totalKeys: r.result!.totalKeys,
+        endTime: r.result!.endTime,
+        playerKeys: r.player ? r.player[0] : 0n,
+        playerPending: r.player ? r.player[1] : 0n,
+        playerWithdrawn: r.player ? r.player[2] : 0n,
+      }))
+      .reverse();
+
+    setRoundHistory(history);
+  }, [
+    currentRound,
+    round1Result,
+    round2Result,
+    round3Result,
+    round4Result,
+    round5Result,
+    round1Player,
+    round2Player,
+    round3Player,
+    round4Player,
+    round5Player,
+  ]);
+
+  // ============ CLAWD Price ============
   useEffect(() => {
     const fetchPrice = async () => {
       try {
@@ -78,7 +203,7 @@ export default function Home() {
           setClawdPrice(parseFloat(data.pairs[0].priceUsd || "0"));
         }
       } catch {
-        // Silently fail
+        /* silently fail */
       }
     };
     fetchPrice();
@@ -86,43 +211,70 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown timer
+  // ============ Countdown Timer ============
   useEffect(() => {
     if (!roundInfo) return;
-    const endTime = Number(roundInfo[2]); // roundEnd
+    const endTime = Number(roundInfo[2]);
 
     const tick = () => {
       const now = Math.floor(Date.now() / 1000);
       const diff = endTime - now;
+      setTimeLeft(diff);
       if (diff <= 0) {
-        setCountdown("EXPIRED");
+        setCountdown("00:00:00");
         return;
       }
-      const h = Math.floor(diff / 3600);
+      const d = Math.floor(diff / 86400);
+      const h = Math.floor((diff % 86400) / 3600);
       const m = Math.floor((diff % 3600) / 60);
       const s = diff % 60;
-      setCountdown(
-        `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
-      );
+      if (d > 0) {
+        setCountdown(
+          `${d}d ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
+        );
+      } else {
+        setCountdown(
+          `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
+        );
+      }
     };
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [roundInfo]);
 
-  // Format CLAWD amount
+  // ============ Formatters ============
   const formatClawd = (val: bigint | undefined) => {
     if (!val) return "0";
     return Number(formatEther(val)).toLocaleString(undefined, { maximumFractionDigits: 0 });
   };
 
-  const formatClawdUsd = (val: bigint | undefined) => {
-    if (!val || !clawdPrice) return "";
-    const amount = Number(formatEther(val));
-    return `~$${(amount * clawdPrice).toFixed(2)}`;
+  const formatClawdPrecise = (val: bigint | undefined) => {
+    if (!val) return "0";
+    return Number(formatEther(val)).toLocaleString(undefined, { maximumFractionDigits: 2 });
   };
 
-  // Handlers
+  const toUsd = (val: bigint | undefined) => {
+    if (!val || !clawdPrice) return "$0.00";
+    const amount = Number(formatEther(val));
+    const usd = amount * clawdPrice;
+    if (usd < 0.01) return "<$0.01";
+    return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  // ============ Confetti helper ============
+  const fireConfetti = (e?: React.MouseEvent) => {
+    if (e) {
+      triggerConfetti(e.clientX, e.clientY);
+    } else if (buyBtnRef.current) {
+      const rect = buyBtnRef.current.getBoundingClientRect();
+      triggerConfetti(rect.left + rect.width / 2, rect.top);
+    } else {
+      triggerConfetti();
+    }
+  };
+
+  // ============ Handlers ============
   const handleSwitch = async () => {
     setIsSwitching(true);
     try {
@@ -135,7 +287,28 @@ export default function Home() {
     }
   };
 
-  const handleBuy = async () => {
+  const handleApprove = async (e: React.MouseEvent) => {
+    setIsApproving(true);
+    try {
+      await writeClawd({
+        functionName: "approve",
+        args: [FOMO3D_ADDRESS, maxUint256],
+      });
+      notification.success("CLAWD approved! ✅");
+      fireConfetti(e);
+    } catch (err: any) {
+      console.error(err);
+      if (err?.message?.includes("user rejected")) {
+        notification.error("Transaction rejected");
+      } else {
+        notification.error("Approval failed");
+      }
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleBuy = async (e: React.MouseEvent) => {
     if (keysNum <= 0 || keysNum > 1000) {
       notification.error("Enter 1-1000 keys");
       return;
@@ -146,13 +319,14 @@ export default function Home() {
         functionName: "buyKeys",
         args: [BigInt(keysNum)],
       });
-      notification.success(`Bought ${keysNum} keys! 🔑`);
-    } catch (e: any) {
-      console.error(e);
-      if (e?.message?.includes("user rejected")) {
+      notification.success(`Bought ${keysNum} key${keysNum > 1 ? "s" : ""}! 🦞🔑`);
+      fireConfetti(e);
+    } catch (err: any) {
+      console.error(err);
+      if (err?.message?.includes("user rejected")) {
         notification.error("Transaction rejected");
       } else {
-        notification.error("Buy failed — check CLAWD approval and balance");
+        notification.error("Buy failed — check your CLAWD balance");
       }
     } finally {
       setIsBuying(false);
@@ -162,259 +336,603 @@ export default function Home() {
   const handleEndRound = async () => {
     setIsEnding(true);
     try {
-      await writeFomo({
-        functionName: "endRound",
-      });
+      await writeFomo({ functionName: "endRound" });
       notification.success("Round ended! 🎉");
-    } catch (e: any) {
-      console.error(e);
-      notification.error("End round failed");
+      triggerConfetti();
+    } catch (err: any) {
+      console.error(err);
+      if (err?.message?.includes("Grace period")) {
+        notification.error("Grace period — only last buyer can end right now");
+      } else {
+        notification.error("End round failed");
+      }
     } finally {
       setIsEnding(false);
     }
   };
 
-  const handleClaim = async () => {
-    if (!currentRound) return;
-    setIsClaiming(true);
+  const handleClaim = async (round: number) => {
+    setClaimingRound(round);
     try {
-      // Claim from previous round
-      const claimRound = currentRound > 1 ? currentRound - 1 : currentRound;
       await writeFomo({
         functionName: "claimDividends",
-        args: [BigInt(claimRound)],
+        args: [BigInt(round)],
       });
-      notification.success("Dividends claimed! 💰");
-    } catch (e: any) {
-      console.error(e);
-      notification.error("Claim failed — no dividends available");
+      notification.success(`Dividends claimed for Round ${round}! 💰`);
+      triggerConfetti();
+    } catch (err: any) {
+      console.error(err);
+      notification.error("No dividends to claim");
     } finally {
-      setIsClaiming(false);
+      setClaimingRound(null);
     }
   };
 
-  const isRoundActive = roundInfo ? Boolean(roundInfo[7]) : false;
+  // ============ Derived State ============
+  const isRoundActive = roundInfo ? Boolean(roundInfo[6]) : false;
   const wrongNetwork = chainId !== TARGET_CHAIN_ID;
+  const needsApproval = cost && clawdAllowance !== undefined && clawdAllowance < cost;
+  const isAntiSnipe = timeLeft > 0 && timeLeft <= 120;
+  const isUrgent = timeLeft > 0 && timeLeft <= 600;
+
+  // ============ Buy Button ============
+  const renderBuyButton = () => {
+    if (wrongNetwork) {
+      return (
+        <button
+          className="w-full py-4 px-6 rounded-2xl font-black text-lg tracking-wide transition-all duration-200
+                     bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/25
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSwitching}
+          onClick={handleSwitch}
+        >
+          {isSwitching ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="loading loading-spinner loading-sm"></span> Switching...
+            </span>
+          ) : (
+            "⛓️ Switch to Base"
+          )}
+        </button>
+      );
+    }
+
+    if (needsApproval) {
+      return (
+        <button
+          className="w-full py-4 px-6 rounded-2xl font-black text-lg tracking-wide transition-all duration-200
+                     bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400
+                     text-white shadow-lg shadow-emerald-500/25
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isApproving}
+          onClick={handleApprove}
+        >
+          {isApproving ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="loading loading-spinner loading-sm"></span> Approving...
+            </span>
+          ) : (
+            "✅ Approve CLAWD"
+          )}
+        </button>
+      );
+    }
+
+    return (
+      <button
+        ref={buyBtnRef}
+        className={`w-full py-4 px-6 rounded-2xl font-black text-xl tracking-wide transition-all duration-200
+                   bg-gradient-to-r from-red-500 via-orange-500 to-amber-500
+                   hover:from-red-400 hover:via-orange-400 hover:to-amber-400
+                   text-white shadow-lg shadow-orange-500/30
+                   disabled:opacity-40 disabled:cursor-not-allowed
+                   ${!isBuying && isRoundActive && !isPotCapReached ? "hover:scale-[1.02] active:scale-95" : ""}`}
+        disabled={isBuying || !isRoundActive || Boolean(isPotCapReached)}
+        onClick={handleBuy}
+      >
+        {isBuying ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="loading loading-spinner loading-sm"></span> Buying...
+          </span>
+        ) : isPotCapReached ? (
+          "⛔ Pot Cap Reached"
+        ) : !isRoundActive ? (
+          "⏰ Round Ended"
+        ) : (
+          `🦞 BUY ${keysNum || 1} KEY${keysNum > 1 ? "S" : ""}`
+        )}
+      </button>
+    );
+  };
 
   return (
-    <div className="flex flex-col items-center gap-6 p-4 max-w-4xl mx-auto">
-      {/* Hero: Countdown Timer */}
-      <div className="w-full bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 rounded-2xl p-8 text-center shadow-2xl border border-orange-500/30">
-        <div className="text-sm uppercase tracking-widest text-orange-300 mb-1">Round {currentRound || "—"}</div>
-        <div
-          className={`text-6xl md:text-8xl font-mono font-bold tracking-wider mb-3 ${
-            countdown === "EXPIRED" ? "text-red-400 animate-pulse" : "text-white"
-          } ${antiSnipeFlash ? "text-yellow-300" : ""}`}
-        >
-          {countdown || "--:--:--"}
-        </div>
-        <div className="text-sm text-orange-200">
-          {isRoundActive ? "⏳ Until last buyer wins the pot" : "🏆 Round has ended!"}
-        </div>
-        {roundInfo && roundInfo[3] && (
-          <div className="text-xs text-orange-400 mt-1">
-            Hard max: {new Date(Number(roundInfo[3]) * 1000).toLocaleString()}
-          </div>
-        )}
-      </div>
+    <div className="min-h-screen bg-[#0a0b14]">
+      {/* Subtle grid background */}
+      <div
+        className="fixed inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+          backgroundSize: "40px 40px",
+        }}
+      />
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
-        <div className="bg-base-200 rounded-xl p-4 text-center">
-          <div className="text-xs text-base-content/60 uppercase">🏆 Pot</div>
-          <div className="text-xl font-bold text-primary">{roundInfo ? formatClawd(roundInfo[1]) : "—"}</div>
-          <div className="text-xs text-base-content/50">{roundInfo ? formatClawdUsd(roundInfo[1]) : ""} CLAWD</div>
-          {roundInfo && roundInfo[8] > 0n && (
-            <div className="text-xs text-warning mt-1">
-              Cap: {formatClawd(roundInfo[8])} {isPotCapReached ? "⛔ REACHED" : ""}
+      <div className="relative flex flex-col items-center gap-6 p-4 md:p-6 max-w-5xl mx-auto pb-20">
+        {/* ============ HERO: Countdown Timer ============ */}
+        <div
+          className={`w-full rounded-3xl p-8 md:p-14 text-center relative overflow-hidden transition-all duration-500 ${
+            !isRoundActive
+              ? "bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50"
+              : isAntiSnipe
+                ? "bg-gradient-to-br from-red-950 via-red-900 to-orange-950 border-2 border-red-500/70"
+                : "bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d1117] border border-purple-500/20"
+          }`}
+        >
+          {/* Glow effect */}
+          {isRoundActive && <div className={`absolute inset-0 ${isAntiSnipe ? "bg-red-500/5" : "bg-purple-500/5"}`} />}
+
+          {/* Floating background emojis */}
+          <div className="absolute inset-0 overflow-hidden opacity-[0.07]">
+            <div className="absolute top-6 left-[10%] text-6xl animate-float-slow">🦞</div>
+            <div className="absolute top-12 right-[15%] text-4xl animate-float-delayed">🔑</div>
+            <div className="absolute bottom-8 left-[20%] text-5xl animate-float-slow">💰</div>
+            <div className="absolute bottom-4 right-[10%] text-6xl animate-float-delayed">👑</div>
+          </div>
+
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6">
+              <div
+                className={`w-2 h-2 rounded-full ${isRoundActive ? (isAntiSnipe ? "bg-red-400 animate-pulse" : "bg-emerald-400") : "bg-gray-500"}`}
+              />
+              <span className="text-xs md:text-sm uppercase tracking-[0.25em] text-white/60 font-medium">
+                Round {currentRound || "—"} {isAntiSnipe && "• ⚡ ANTI-SNIPE"}
+              </span>
             </div>
+
+            <div
+              className={`text-7xl md:text-[10rem] font-mono font-black tracking-tight leading-none mb-6 ${
+                !isRoundActive
+                  ? "text-gray-500"
+                  : isAntiSnipe
+                    ? "text-red-400 animate-pulse"
+                    : isUrgent
+                      ? "text-amber-300"
+                      : "text-white"
+              }`}
+              style={{
+                textShadow: isAntiSnipe
+                  ? "0 0 60px rgba(239,68,68,0.4), 0 0 120px rgba(239,68,68,0.2)"
+                  : isRoundActive
+                    ? "0 0 60px rgba(255,255,255,0.15), 0 0 120px rgba(139,92,246,0.1)"
+                    : "none",
+              }}
+            >
+              {countdown || "--:--:--"}
+            </div>
+
+            <p className="text-base md:text-lg text-white/40 max-w-md mx-auto">
+              {isRoundActive
+                ? isAntiSnipe
+                  ? "🚨 Under 2 minutes! Every buy extends the timer!"
+                  : "Last buyer when the timer hits zero wins the pot"
+                : "🏆 Round has ended — someone claim the prize!"}
+            </p>
+          </div>
+        </div>
+
+        {/* ============ Stats Grid ============ */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 w-full">
+          {[
+            {
+              label: "Pot Size",
+              icon: "🏆",
+              value: roundInfo ? formatClawd(roundInfo[1]) : "—",
+              sub: roundInfo ? `${toUsd(roundInfo[1])}` : "",
+              accent: "text-emerald-400",
+              extra:
+                roundInfo && roundInfo[7] > 0n
+                  ? `Cap: ${formatClawd(roundInfo[7])} ${isPotCapReached ? "⛔" : ""}`
+                  : null,
+            },
+            {
+              label: "Key Price",
+              icon: "🔑",
+              value: roundInfo ? formatClawd(roundInfo[5]) : "—",
+              sub: roundInfo ? `${toUsd(roundInfo[5])}` : "",
+              accent: "text-amber-400",
+            },
+            {
+              label: "Keys Sold",
+              icon: "🎲",
+              value: roundInfo ? Number(roundInfo[4]).toLocaleString() : "—",
+              sub: "this round",
+              accent: "text-blue-400",
+            },
+            {
+              label: "Total Burned",
+              icon: "🔥",
+              value: totalBurned !== undefined ? formatClawd(totalBurned) : "—",
+              sub: totalBurned !== undefined ? toUsd(totalBurned) : "",
+              accent: "text-red-400",
+            },
+          ].map(stat => (
+            <div
+              key={stat.label}
+              className="bg-[#12131f] rounded-2xl p-4 md:p-5 text-center border border-white/5
+                         hover:border-white/10 transition-all duration-200"
+            >
+              <div className="text-xs text-white/30 uppercase tracking-wider mb-2 font-medium">
+                {stat.icon} {stat.label}
+              </div>
+              <div className={`text-2xl md:text-3xl font-black ${stat.accent}`}>{stat.value}</div>
+              <div className="text-xs text-white/25 mt-1">{stat.sub}</div>
+              {stat.extra && <div className="text-xs text-amber-400/70 mt-1 font-medium">{stat.extra}</div>}
+            </div>
+          ))}
+        </div>
+
+        {/* ============ Last Buyer (Leader) ============ */}
+        <div className="w-full bg-gradient-to-r from-amber-500/5 to-orange-500/5 rounded-2xl p-5 text-center border border-amber-500/10">
+          <div className="text-xs text-amber-300/50 uppercase tracking-wider mb-2 font-medium">👑 Current Leader</div>
+          {roundInfo && roundInfo[3] && roundInfo[3] !== ZERO_ADDR ? (
+            <div className="flex justify-center">
+              <Address address={roundInfo[3]} />
+            </div>
+          ) : (
+            <span className="text-white/20 text-lg">No buyers yet — be the first! 🏃</span>
           )}
         </div>
-        <div className="bg-base-200 rounded-xl p-4 text-center">
-          <div className="text-xs text-base-content/60 uppercase">🔑 Key Price</div>
-          <div className="text-xl font-bold">{roundInfo ? formatClawd(roundInfo[6]) : "—"}</div>
-          <div className="text-xs text-base-content/50">{roundInfo ? formatClawdUsd(roundInfo[6]) : ""} CLAWD</div>
-        </div>
-        <div className="bg-base-200 rounded-xl p-4 text-center">
-          <div className="text-xs text-base-content/60 uppercase">🔑 Total Keys</div>
-          <div className="text-xl font-bold">{roundInfo ? Number(roundInfo[5]).toLocaleString() : "—"}</div>
-        </div>
-        <div className="bg-base-200 rounded-xl p-4 text-center">
-          <div className="text-xs text-base-content/60 uppercase">🔥 Total Burned</div>
-          <div className="text-xl font-bold text-error">{totalBurned ? formatClawd(totalBurned) : "—"}</div>
-          <div className="text-xs text-base-content/50">{totalBurned ? formatClawdUsd(totalBurned) : ""} CLAWD</div>
-        </div>
-      </div>
 
-      {/* Last Buyer */}
-      <div className="bg-base-200 rounded-xl p-4 w-full text-center">
-        <div className="text-xs text-base-content/60 uppercase mb-1">👑 Last Buyer (Current Leader)</div>
-        {roundInfo && roundInfo[4] && roundInfo[4] !== "0x0000000000000000000000000000000000000000" ? (
-          <Address address={roundInfo[4]} />
-        ) : (
-          <span className="text-base-content/40">No buyers yet — be the first!</span>
-        )}
-      </div>
+        {/* ============ BUY KEYS Section ============ */}
+        <div className="bg-[#12131f] rounded-3xl p-6 md:p-8 w-full border border-white/5 relative overflow-hidden">
+          {/* Subtle gradient accent */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 opacity-60" />
 
-      {/* Buy Keys Section */}
-      <div className="bg-base-200 rounded-xl p-6 w-full">
-        <h2 className="text-lg font-bold mb-4">🔑 Buy Keys</h2>
-        <div className="flex flex-col sm:flex-row gap-3 items-end">
-          <div className="flex-1 w-full">
-            <label className="text-sm text-base-content/60 mb-1 block">Number of keys (1-1000)</label>
-            <input
-              type="number"
-              min="1"
-              max="1000"
-              value={numKeys}
-              onChange={e => setNumKeys(e.target.value)}
-              className="input input-bordered w-full"
-              placeholder="1"
-            />
-            {cost && (
-              <div className="text-sm mt-1 text-base-content/60">
-                Cost: {formatClawd(cost)} CLAWD {formatClawdUsd(cost)}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Left: Input */}
+            <div className="flex-1">
+              <label className="text-sm text-white/40 mb-3 block font-medium">How many keys?</label>
+              <input
+                type="number"
+                min="1"
+                max="1000"
+                value={numKeys}
+                onChange={e => setNumKeys(e.target.value)}
+                className="w-full bg-[#1a1b2e] border border-white/10 rounded-xl px-4 py-3
+                           text-center text-3xl font-black text-white
+                           focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20
+                           transition-all"
+                placeholder="1"
+              />
+
+              {/* Quick buttons */}
+              <div className="flex gap-2 mt-3">
+                {[1, 5, 10, 25, 50, 100].map(n => (
+                  <button
+                    key={n}
+                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all duration-150 ${
+                      numKeys === String(n)
+                        ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
+                        : "bg-white/5 text-white/40 border border-transparent hover:bg-white/10 hover:text-white/60"
+                    }`}
+                    onClick={() => setNumKeys(String(n))}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              {cost && (
+                <div className="mt-4 p-4 bg-[#1a1b2e] rounded-xl border border-white/5">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-white/30">Total Cost</span>
+                    <span className="text-sm text-white/30">{toUsd(cost)}</span>
+                  </div>
+                  <div className="text-2xl font-black text-white mt-1">
+                    {formatClawdPrecise(cost)} <span className="text-white/30 text-base">CLAWD</span>
+                  </div>
+                  <div className="text-xs text-red-400/60 mt-2 flex items-center gap-1">
+                    🔥 {formatClawd((cost * 10n) / 100n)} burned on buy (10%)
+                  </div>
+                </div>
+              )}
+
+              {address && clawdBalance !== undefined && (
+                <div className="text-xs text-white/20 mt-3">
+                  Balance: {formatClawd(clawdBalance)} CLAWD ({toUsd(clawdBalance)})
+                </div>
+              )}
+            </div>
+
+            {/* Right: Buy Button */}
+            <div className="flex flex-col justify-center md:w-72 gap-3">
+              {renderBuyButton()}
+
+              {needsApproval && (
+                <p className="text-xs text-white/20 text-center">
+                  One-time approval to let the contract spend your CLAWD
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============ Your Stats + Dividends ============ */}
+        {address && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="bg-[#12131f] rounded-2xl p-5 border border-white/5">
+              <div className="text-sm font-bold mb-4 text-white/70">🎮 Your Round {currentRound} Stats</div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <div className="text-xs text-white/25 mb-1">Keys</div>
+                  <div className="text-2xl font-black text-white">
+                    {playerInfo ? Number(playerInfo[0]).toLocaleString() : "0"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-white/25 mb-1">Pending</div>
+                  <div className="text-2xl font-black text-emerald-400">
+                    {playerInfo ? formatClawd(playerInfo[1]) : "0"}
+                  </div>
+                  <div className="text-xs text-white/20">{playerInfo ? toUsd(playerInfo[1]) : ""}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-white/25 mb-1">Claimed</div>
+                  <div className="text-2xl font-black text-white/60">
+                    {playerInfo ? formatClawd(playerInfo[2]) : "0"}
+                  </div>
+                  <div className="text-xs text-white/20">{playerInfo ? toUsd(playerInfo[2]) : ""}</div>
+                </div>
+              </div>
+              {playerInfo && playerInfo[1] > 0n && (
+                <button
+                  className="w-full mt-4 py-2.5 rounded-xl font-bold text-sm bg-emerald-500/15 text-emerald-400
+                             border border-emerald-500/20 hover:bg-emerald-500/25 transition-all
+                             disabled:opacity-50"
+                  disabled={claimingRound === currentRound}
+                  onClick={() => handleClaim(currentRound)}
+                >
+                  {claimingRound === currentRound ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="loading loading-spinner loading-sm"></span> Claiming...
+                    </span>
+                  ) : (
+                    `💰 Claim ${formatClawd(playerInfo[1])} CLAWD`
+                  )}
+                </button>
+              )}
+            </div>
+
+            {currentRound > 1 && prevPlayerInfo && prevPlayerInfo[0] > 0n && (
+              <div className="bg-[#12131f] rounded-2xl p-5 border border-white/5">
+                <div className="text-sm font-bold mb-4 text-white/70">📜 Round {currentRound - 1} Dividends</div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <div className="text-xs text-white/25 mb-1">Keys</div>
+                    <div className="text-2xl font-black text-white">{Number(prevPlayerInfo[0]).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-white/25 mb-1">Pending</div>
+                    <div className="text-2xl font-black text-emerald-400">{formatClawd(prevPlayerInfo[1])}</div>
+                    <div className="text-xs text-white/20">{toUsd(prevPlayerInfo[1])}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-white/25 mb-1">Claimed</div>
+                    <div className="text-2xl font-black text-white/60">{formatClawd(prevPlayerInfo[2])}</div>
+                  </div>
+                </div>
+                {prevPlayerInfo[1] > 0n && (
+                  <button
+                    className="w-full mt-4 py-2.5 rounded-xl font-bold text-sm bg-emerald-500/15 text-emerald-400
+                               border border-emerald-500/20 hover:bg-emerald-500/25 transition-all
+                               disabled:opacity-50"
+                    disabled={claimingRound === currentRound - 1}
+                    onClick={() => handleClaim(currentRound - 1)}
+                  >
+                    {claimingRound === currentRound - 1 ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="loading loading-spinner loading-sm"></span> Claiming...
+                      </span>
+                    ) : (
+                      `💰 Claim ${formatClawd(prevPlayerInfo[1])} CLAWD`
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </div>
-          <div className="w-full sm:w-auto">
+        )}
+
+        {/* ============ End Round Button ============ */}
+        {!isRoundActive && (
+          <div className="w-full bg-gradient-to-r from-amber-500/5 to-red-500/5 rounded-2xl p-6 text-center border border-amber-500/15">
+            <div className="text-xl font-black mb-2 text-white">🏁 Round Over!</div>
+            <p className="text-sm text-white/30 mb-4 max-w-md mx-auto">
+              Timer expired. End the round to distribute the pot. 60s grace period for last buyer, then anyone can call.
+            </p>
             {wrongNetwork ? (
-              <button className="btn btn-primary w-full sm:w-auto" disabled={isSwitching} onClick={handleSwitch}>
-                {isSwitching ? "Switching..." : "Switch to Base"}
+              <button
+                className="py-3 px-8 rounded-xl font-bold bg-amber-500 text-black hover:bg-amber-400 transition-all
+                           disabled:opacity-50"
+                disabled={isSwitching}
+                onClick={handleSwitch}
+              >
+                {isSwitching ? "Switching..." : "⛓️ Switch to Base"}
               </button>
             ) : (
               <button
-                className="btn btn-primary w-full sm:w-auto"
-                disabled={isBuying || !isRoundActive || Boolean(isPotCapReached)}
-                onClick={handleBuy}
+                className="py-3 px-8 rounded-xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-black
+                           hover:from-amber-400 hover:to-orange-400 transition-all
+                           disabled:opacity-50"
+                disabled={isEnding}
+                onClick={handleEndRound}
               >
-                {isBuying ? "Buying..." : isPotCapReached ? "Pot Cap Reached" : `Buy ${keysNum || 0} Keys`}
+                {isEnding ? (
+                  <span className="flex items-center gap-2">
+                    <span className="loading loading-spinner loading-sm"></span> Ending Round...
+                  </span>
+                ) : (
+                  "🏁 End Round & Distribute Pot"
+                )}
               </button>
             )}
           </div>
-        </div>
-        <p className="text-xs text-base-content/40 mt-2">
-          ⚠️ You must approve CLAWD spending first. Use the Debug tab or approve directly. 10% of every buy is burned
-          permanently. Each buy resets the countdown timer.
-        </p>
-      </div>
+        )}
 
-      {/* End Round / Claim Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-        <div className="bg-base-200 rounded-xl p-4">
-          <h3 className="text-sm font-bold mb-2">🏁 End Round</h3>
-          <p className="text-xs text-base-content/60 mb-3">
-            Call when timer expires. 60s grace period for last buyer, then anyone can call.
-          </p>
-          <button
-            className="btn btn-warning btn-sm w-full"
-            disabled={isEnding || isRoundActive}
-            onClick={handleEndRound}
-          >
-            {isEnding ? "Ending..." : countdown === "EXPIRED" ? "End Round" : "Timer Still Running"}
-          </button>
+        {/* ============ Pot Distribution ============ */}
+        <div className="bg-[#12131f] rounded-2xl p-6 w-full border border-white/5">
+          <div className="text-lg font-black mb-5 text-white/80">📊 Pot Distribution</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              {
+                pct: "40%",
+                label: "Winner",
+                icon: "🏆",
+                desc: "Last buyer takes it",
+                color: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/15 text-emerald-400",
+              },
+              {
+                pct: "30%",
+                label: "Burned",
+                icon: "🔥",
+                desc: "Gone forever",
+                color: "from-red-500/20 to-red-500/5 border-red-500/15 text-red-400",
+              },
+              {
+                pct: "25%",
+                label: "Dividends",
+                icon: "💰",
+                desc: "To key holders",
+                color: "from-blue-500/20 to-blue-500/5 border-blue-500/15 text-blue-400",
+              },
+              {
+                pct: "5%",
+                label: "Next Round",
+                icon: "🌱",
+                desc: "Seeds the pot",
+                color: "from-amber-500/20 to-amber-500/5 border-amber-500/15 text-amber-400",
+              },
+            ].map(item => (
+              <div key={item.label} className={`bg-gradient-to-b ${item.color} rounded-xl p-4 text-center border`}>
+                <div className={`text-3xl font-black`}>{item.pct}</div>
+                <div className="text-sm font-bold mt-1 text-white/70">
+                  {item.icon} {item.label}
+                </div>
+                <div className="text-xs text-white/25 mt-1">{item.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div className="text-xs text-white/15 mt-3 text-center">+ 10% of every key purchase is burned on buy</div>
         </div>
 
-        <div className="bg-base-200 rounded-xl p-4">
-          <h3 className="text-sm font-bold mb-2">💰 Claim Dividends</h3>
-          {playerInfo && (
-            <div className="text-xs text-base-content/60 mb-2">
-              Your keys: {Number(playerInfo[0]).toLocaleString()} | Pending: {formatClawd(playerInfo[1])} CLAWD |
-              Claimed: {formatClawd(playerInfo[2])} CLAWD
+        {/* ============ Round History ============ */}
+        {roundHistory.length > 0 && (
+          <div className="bg-[#12131f] rounded-2xl p-6 w-full border border-white/5">
+            <div className="text-lg font-black mb-4 text-white/80">📜 Round History</div>
+            <div className="overflow-x-auto">
+              <table className="table table-sm w-full">
+                <thead>
+                  <tr className="text-white/30 border-white/5">
+                    <th>Round</th>
+                    <th>Winner</th>
+                    <th>Pot</th>
+                    <th>Won</th>
+                    <th>Burned</th>
+                    <th>Keys</th>
+                    {address && <th>Your Keys</th>}
+                    {address && <th>Dividends</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {roundHistory.map(r => (
+                    <tr key={r.round} className="border-white/5">
+                      <td className="font-bold text-white/70">#{r.round}</td>
+                      <td>
+                        <Address address={r.winner} />
+                      </td>
+                      <td>
+                        <div className="text-white/70">{formatClawd(r.potSize)}</div>
+                        <div className="text-xs text-white/25">{toUsd(r.potSize)}</div>
+                      </td>
+                      <td>
+                        <div className="text-emerald-400/80">{formatClawd(r.winnerPayout)}</div>
+                        <div className="text-xs text-white/25">{toUsd(r.winnerPayout)}</div>
+                      </td>
+                      <td className="text-red-400/80">
+                        <div>{formatClawd(r.burned)}</div>
+                        <div className="text-xs text-white/25">{toUsd(r.burned)}</div>
+                      </td>
+                      <td className="text-white/50">{Number(r.totalKeys).toLocaleString()}</td>
+                      {address && <td className="text-white/50">{Number(r.playerKeys).toLocaleString()}</td>}
+                      {address && (
+                        <td>
+                          {r.playerPending > 0n ? (
+                            <button
+                              className="btn btn-success btn-xs"
+                              disabled={claimingRound === r.round}
+                              onClick={() => handleClaim(r.round)}
+                            >
+                              {claimingRound === r.round ? (
+                                <span className="loading loading-spinner loading-xs"></span>
+                              ) : (
+                                `Claim ${formatClawd(r.playerPending)}`
+                              )}
+                            </button>
+                          ) : r.playerWithdrawn > 0n ? (
+                            <span className="text-emerald-400/60 text-xs">✅ {formatClawd(r.playerWithdrawn)}</span>
+                          ) : r.playerKeys > 0n ? (
+                            <span className="text-xs text-white/20">None</span>
+                          ) : (
+                            <span className="text-xs text-white/15">—</span>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-          <button
-            className="btn btn-success btn-sm w-full"
-            disabled={isClaiming || !playerInfo || playerInfo[1] === 0n}
-            onClick={handleClaim}
-          >
-            {isClaiming ? "Claiming..." : "Claim Dividends"}
-          </button>
-        </div>
-      </div>
+          </div>
+        )}
 
-      {/* Distribution Info */}
-      <div className="bg-base-200 rounded-xl p-6 w-full">
-        <h2 className="text-lg font-bold mb-3">📊 Pot Distribution</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-          <div>
-            <div className="text-2xl font-bold text-success">40%</div>
-            <div className="text-xs text-base-content/60">Winner</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-error">30%</div>
-            <div className="text-xs text-base-content/60">Burned 🔥</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-info">25%</div>
-            <div className="text-xs text-base-content/60">Key Holder Dividends</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-warning">5%</div>
-            <div className="text-xs text-base-content/60">Dev Fee</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Past Round Result */}
-      {prevRoundResult && prevRoundResult.winner !== "0x0000000000000000000000000000000000000000" && (
-        <div className="bg-base-200 rounded-xl p-4 w-full">
-          <h3 className="text-sm font-bold mb-2">🏆 Previous Round Winner</h3>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-base-content/60">Winner:</span>
-              <Address address={prevRoundResult.winner} />
-            </div>
-            <div className="text-xs text-base-content/60">
-              Pot: {formatClawd(prevRoundResult.potSize)} CLAWD | Won: {formatClawd(prevRoundResult.winnerPayout)} CLAWD
-              | Burned: {formatClawd(prevRoundResult.burned)} CLAWD | Keys:{" "}
-              {Number(prevRoundResult.totalKeys).toLocaleString()}
-            </div>
+        {/* ============ How It Works ============ */}
+        <div className="bg-[#12131f] rounded-2xl p-6 w-full border border-white/5">
+          <div className="text-lg font-black mb-5 text-white/80">❓ How It Works</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                icon: "🔑",
+                title: "1. Buy Keys",
+                desc: "Spend $CLAWD to buy keys. Price increases with each key sold (bonding curve). 10% burned on every buy.",
+              },
+              {
+                icon: "⏰",
+                title: "2. Reset Timer",
+                desc: "Each purchase resets the countdown and makes you the leader. Anti-snipe extends timer if bought in last 2 min.",
+              },
+              {
+                icon: "🏆",
+                title: "3. Win the Pot",
+                desc: "When timer expires, last buyer wins 40%! 30% burned, 25% to key holders as dividends, 5% seeds next round.",
+              },
+            ].map(step => (
+              <div key={step.title} className="bg-white/[0.02] rounded-xl p-5 border border-white/5">
+                <div className="text-3xl mb-3">{step.icon}</div>
+                <div className="font-bold text-white/80 mb-2">{step.title}</div>
+                <div className="text-sm text-white/30 leading-relaxed">{step.desc}</div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* How it Works */}
-      <div className="bg-base-200 rounded-xl p-6 w-full">
-        <h2 className="text-lg font-bold mb-3">❓ How It Works</h2>
-        <div className="text-sm text-base-content/70 space-y-2">
-          <p>
-            <strong>1. Buy Keys</strong> — Spend $CLAWD to buy keys. Price increases with each key sold (bonding curve).
-            10% of your payment is burned immediately.
-          </p>
-          <p>
-            <strong>2. Reset the Timer</strong> — Each purchase resets the countdown. You become the &quot;last
-            buyer.&quot;
-          </p>
-          <p>
-            <strong>3. Win the Pot</strong> — When the timer runs out, the last buyer wins 40% of the pot! 30% is burned
-            forever, 25% goes to all key holders as dividends, 5% to dev.
-          </p>
-          <p>
-            <strong>🛡️ Anti-Snipe</strong> — If someone buys within the last 2 minutes, the timer extends by 2 minutes
-            (capped at a hard maximum so the round always ends).
-          </p>
-          <p>
-            <strong>🧪 Trial Round</strong> — This is a trial version with a max pot cap of 1M CLAWD. Once reached, no
-            more buys — timer just runs out.
-          </p>
-          <p>
-            <strong>⚡ End Round</strong> — Anyone can end the round after the timer expires (60s grace period for the
-            last buyer).
-          </p>
-          <p>
-            <strong>💰 Dividends</strong> — Key holders earn a share of every round&apos;s pot (25%). Claim after rounds
-            end.
-          </p>
+        {/* ============ Footer ============ */}
+        <div className="text-xs text-white/15 text-center space-y-1 pt-4">
+          <div>$CLAWD: ${clawdPrice.toFixed(6)} USD</div>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span>Contract:</span> <Address address={FOMO3D_ADDRESS} />
+            <span>•</span>
+            <span>Token:</span> <Address address={CLAWD_TOKEN} />
+          </div>
         </div>
-      </div>
-
-      {/* CLAWD Price Footer */}
-      <div className="text-xs text-base-content/40 text-center">
-        $CLAWD Price: ${clawdPrice.toFixed(6)} USD (via DexScreener) • Token:{" "}
-        <span className="font-mono">
-          {CLAWD_TOKEN.slice(0, 6)}...{CLAWD_TOKEN.slice(-4)}
-        </span>
       </div>
     </div>
   );

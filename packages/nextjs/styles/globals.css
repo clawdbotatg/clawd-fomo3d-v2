@@ -2,78 +2,45 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
 @theme {
   --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', ui-monospace, monospace;
 }
 
 @plugin "daisyui" {
   themes:
-    light,
     dark --prefersdark;
-}
-
-@plugin "daisyui/theme" {
-  name: "light";
-
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
-  --color-neutral-content: #ffffff;
-  --color-base-100: #ffffff;
-  --color-base-200: #f4f8ff;
-  --color-base-300: #dae8ff;
-  --color-base-content: #212638;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
-
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-  --tt-tailw: 6px;
 }
 
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
-  --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
-  --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-base-100: #385183;
-  --color-base-200: #2a3655;
-  --color-base-300: #212638;
-  --color-base-content: #f9fbff;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-primary: #ff2222;
+  --color-primary-content: #0a0a0a;
+  --color-secondary: #661111;
+  --color-secondary-content: #ff4444;
+  --color-accent: #ff2222;
+  --color-accent-content: #0a0a0a;
+  --color-neutral: #ff2222;
+  --color-neutral-content: #1a0a0a;
+  --color-base-100: #0d0d0d;
+  --color-base-200: #0a0a0a;
+  --color-base-300: #111111;
+  --color-base-content: #ff2222;
+  --color-info: #661111;
+  --color-success: #ff2222;
+  --color-warning: #ff4444;
+  --color-error: #ff0000;
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
   --tt-tailw: 6px;
-  --tt-bg: var(--color-primary);
+  --tt-bg: #1a0a0a;
 }
 
 /*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
+  Tailwind CSS v4 border compat
 */
 @layer base {
   *,
@@ -85,29 +52,253 @@
   }
 
   p {
-    margin: 1rem 0;
+    margin: 0.5rem 0;
   }
 
   body {
     min-height: 100vh;
+    background: #0a0a0a;
+    color: #ff2222;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', ui-monospace, monospace;
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
+  h1, h2, h3, h4 {
     margin-bottom: 0.5rem;
     line-height: 1;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', ui-monospace, monospace;
   }
 }
 
 :root,
 [data-theme] {
-  background: var(--color-base-200);
+  background: #0a0a0a;
 }
 
+/* ═══════════════════════════════════════════
+   SCANLINE OVERLAY — CRT monitor effect
+   ═══════════════════════════════════════════ */
+.scanlines::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+}
+
+/* ═══════════════════════════════════════════
+   BACKGROUND GRID — subtle terminal grid
+   ═══════════════════════════════════════════ */
+.terminal-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 34, 34, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 34, 34, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ═══════════════════════════════════════════
+   RED GLOW TEXT
+   ═══════════════════════════════════════════ */
+.text-glow {
+  text-shadow:
+    0 0 7px rgba(255, 34, 34, 0.5),
+    0 0 20px rgba(255, 34, 34, 0.3),
+    0 0 40px rgba(255, 34, 34, 0.15);
+}
+
+.text-glow-subtle {
+  text-shadow:
+    0 0 5px rgba(255, 34, 34, 0.3),
+    0 0 15px rgba(255, 34, 34, 0.15);
+}
+
+.text-glow-intense {
+  text-shadow:
+    0 0 10px rgba(255, 34, 34, 0.7),
+    0 0 30px rgba(255, 34, 34, 0.5),
+    0 0 60px rgba(255, 34, 34, 0.3),
+    0 0 100px rgba(255, 34, 34, 0.15);
+}
+
+/* ═══════════════════════════════════════════
+   TERMINAL BUTTON STYLE
+   ═══════════════════════════════════════════ */
+.btn-terminal {
+  background: transparent;
+  border: 1px solid #ff2222;
+  color: #ff2222;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-terminal:hover:not(:disabled) {
+  background: rgba(255, 34, 34, 0.1);
+  box-shadow:
+    0 0 10px rgba(255, 34, 34, 0.3),
+    0 0 20px rgba(255, 34, 34, 0.15),
+    inset 0 0 10px rgba(255, 34, 34, 0.1);
+  text-shadow: 0 0 5px rgba(255, 34, 34, 0.5);
+}
+
+.btn-terminal:active:not(:disabled) {
+  background: rgba(255, 34, 34, 0.2);
+}
+
+.btn-terminal:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════
+   RED HR DIVIDER
+   ═══════════════════════════════════════════ */
+.divider-red {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 34, 34, 0.4) 20%,
+    rgba(255, 34, 34, 0.4) 80%,
+    transparent
+  );
+  margin: 1rem 0;
+}
+
+/* ═══════════════════════════════════════════
+   TERMINAL BOX — bordered sections
+   ═══════════════════════════════════════════ */
+.terminal-box {
+  border: 1px solid rgba(255, 34, 34, 0.2);
+  background: rgba(255, 34, 34, 0.02);
+  position: relative;
+}
+
+.terminal-box::before {
+  content: "◆";
+  position: absolute;
+  top: -0.5em;
+  left: 0.75em;
+  background: #0a0a0a;
+  padding: 0 0.25em;
+  color: rgba(255, 34, 34, 0.4);
+  font-size: 0.6em;
+}
+
+/* ═══════════════════════════════════════════
+   CORNER DIAMONDS — decorative corners
+   ═══════════════════════════════════════════ */
+.corner-diamonds {
+  position: relative;
+}
+
+.corner-diamonds::before,
+.corner-diamonds::after {
+  position: absolute;
+  color: rgba(255, 34, 34, 0.25);
+  font-size: 0.5rem;
+  pointer-events: none;
+}
+
+.corner-diamonds::before {
+  content: "◆";
+  top: 0.25rem;
+  left: 0.5rem;
+}
+
+.corner-diamonds::after {
+  content: "◆";
+  bottom: 0.25rem;
+  right: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════
+   FLICKER — CRT text flicker animation
+   ═══════════════════════════════════════════ */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  3% { opacity: 0.9; }
+  6% { opacity: 1; }
+  7.5% { opacity: 0.85; }
+  9% { opacity: 1; }
+  50% { opacity: 1; }
+  50.5% { opacity: 0.92; }
+  51% { opacity: 1; }
+}
+
+.animate-flicker {
+  animation: flicker 4s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════
+   CURSOR BLINK
+   ═══════════════════════════════════════════ */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink-cursor 1s step-end infinite;
+}
+
+/* ═══════════════════════════════════════════
+   FLOATING ANIMATIONS (for bg elements)
+   ═══════════════════════════════════════════ */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(-5deg); }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 5s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+/* ═══════════════════════════════════════════
+   NUMBER INPUT — hide spinners
+   ═══════════════════════════════════════════ */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ═══════════════════════════════════════════
+   OVERRIDE DaisyUI / Scaffold-ETH defaults
+   ═══════════════════════════════════════════ */
 .btn {
-  @apply shadow-md;
+  @apply shadow-none;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .btn.btn-ghost {
@@ -116,8 +307,52 @@
 
 .link {
   text-underline-offset: 2px;
+  color: #ff2222;
 }
 
 .link:hover {
   opacity: 80%;
+}
+
+/* Override RainbowKit connect button styling */
+[data-rk] button {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Override navbar/base backgrounds */
+.navbar {
+  background: rgba(10, 10, 10, 0.95) !important;
+}
+
+/* ═══════════════════════════════════════════
+   PULSE RING — for status indicators
+   ═══════════════════════════════════════════ */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(255, 34, 34, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 34, 34, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 34, 34, 0); }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s infinite;
+}
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR — red terminal style
+   ═══════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 34, 34, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 34, 34, 0.5);
 }
