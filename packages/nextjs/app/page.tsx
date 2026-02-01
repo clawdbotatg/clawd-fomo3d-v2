@@ -55,7 +55,6 @@ const REVERT_MESSAGES: Array<[string, string]> = [
   ["round not active", "Round has ended."],
   ["round is active", "Round is still active."],
   ["grace period", "Grace period active — wait 60s after timer expires."],
-  ["pot cap reached", "Pot cap reached — no more keys this round."],
   ["no dividends", "Nothing to claim."],
   ["zero keys", "Buy at least 1 key."],
   ["too many keys", "Max 1000 keys per transaction."],
@@ -199,11 +198,6 @@ export default function Home() {
     contractName: "ClawdFomo3D",
     functionName: "getPlayer",
     args: [BigInt(currentRound || 1), address || ZERO_ADDR],
-    query: { refetchInterval: POLL_MS },
-  });
-  const { data: isPotCapReached } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "isPotCapReached",
     query: { refetchInterval: POLL_MS },
   });
   const { data: clawdAllowance } = useScaffoldReadContract({
@@ -380,6 +374,13 @@ export default function Home() {
     if (!val) return "0";
     return Number(formatEther(val)).toLocaleString(undefined, { maximumFractionDigits: 0 });
   };
+  const fmtCDiv = (val: bigint | undefined) => {
+    if (!val || val === 0n) return "0";
+    const num = Number(formatEther(val));
+    if (num === 0) return "0";
+    if (num < 0.01) return "<0.01";
+    return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  };
   const fmtCP = (val: bigint | undefined) => {
     if (!val) return "0";
     return Number(formatEther(val)).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -551,7 +552,7 @@ export default function Home() {
             <div className="text-sm font-bold text-[#f0e6ff] mb-1">1. BUY A KEY</div>
             <div className="text-xs text-[#8b7aaa] leading-relaxed">
               Adds time to the clock. Makes YOU the King.
-              <span className="text-[#c9a0ff]"> Bonus:</span> You earn dividends from everyone who buys after you!
+              <span className="text-[#c9a0ff]"> Bonus:</span> Key holders split 25% of the pot when the round ends!
             </div>
           </div>
           <div className="card-glass rounded-xl p-4">
@@ -709,18 +710,12 @@ export default function Home() {
               <button
                 ref={buyBtnRef}
                 className={`btn-crown rounded-xl py-4 px-6 text-lg ${
-                  !isBuying && isRoundActive && !isPotCapReached ? "hover:scale-[1.03] active:scale-95" : ""
+                  !isBuying && isRoundActive ? "hover:scale-[1.03] active:scale-95" : ""
                 }`}
-                disabled={isBuying || !isRoundActive || Boolean(isPotCapReached)}
+                disabled={isBuying || !isRoundActive}
                 onClick={handleBuy}
               >
-                {isBuying
-                  ? "EXECUTING..."
-                  : isPotCapReached
-                    ? "POT CAP REACHED"
-                    : !isRoundActive
-                      ? "ROUND ENDED"
-                      : `SNATCH THE 👑`}
+                {isBuying ? "EXECUTING..." : !isRoundActive ? "ROUND ENDED" : `SNATCH THE 👑`}
               </button>
             )}
 
@@ -761,13 +756,28 @@ export default function Home() {
               <div className="flex justify-between">
                 <TermLabel>pending dividends</TermLabel>
                 <div>
-                  <TermValue glow>{playerInfo ? fmtC(playerInfo[1]) : "0"} CLAWD</TermValue>
+                  <TermValue glow>{playerInfo ? fmtCDiv(playerInfo[1]) : "0"} CLAWD</TermValue>
                   <span className="text-[#8b7aaa] text-xs ml-2">→ {playerInfo ? toUsd(playerInfo[1]) : ""}</span>
                 </div>
               </div>
+              {playerInfo && playerInfo[0] > 0n && playerInfo[1] === 0n && isRoundActive && (
+                <div className="text-[10px] text-[#8b7aaa]/70 ml-1 -mt-1 mb-1">
+                  💡 dividends are distributed when the round ends (25% of pot split by keys held)
+                </div>
+              )}
+              {playerInfo && playerInfo[0] > 0n && isRoundActive && roundInfo && roundInfo[4] > 0n && (
+                <div className="flex justify-between">
+                  <TermLabel>est. payout at round end</TermLabel>
+                  <div>
+                    <span className="text-[#c9a0ff] font-mono text-sm">
+                      ~{fmtC((((roundInfo[1] * 2500n) / 10000n) * playerInfo[0]) / roundInfo[4])} CLAWD
+                    </span>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between">
                 <TermLabel>claimed</TermLabel>
-                <span className="text-[#c9a0ff]">{playerInfo ? fmtC(playerInfo[2]) : "0"} CLAWD</span>
+                <span className="text-[#c9a0ff]">{playerInfo ? fmtCDiv(playerInfo[2]) : "0"} CLAWD</span>
               </div>
               <div className="flex justify-between">
                 <TermLabel>CLAWD balance</TermLabel>
@@ -804,11 +814,11 @@ export default function Home() {
                 </div>
                 <div className="flex justify-between">
                   <TermLabel>pending</TermLabel>
-                  <TermValue glow>{fmtC(prevPlayerInfo[1])} CLAWD</TermValue>
+                  <TermValue glow>{fmtCDiv(prevPlayerInfo[1])} CLAWD</TermValue>
                 </div>
                 <div className="flex justify-between">
                   <TermLabel>claimed</TermLabel>
-                  <span className="text-[#c9a0ff]">{fmtC(prevPlayerInfo[2])} CLAWD</span>
+                  <span className="text-[#c9a0ff]">{fmtCDiv(prevPlayerInfo[2])} CLAWD</span>
                 </div>
               </div>
               {prevPlayerInfo[1] > 0n && (
@@ -864,15 +874,6 @@ export default function Home() {
               </span>
             </div>
           </div>
-
-          {roundInfo && roundInfo[7] > 0n && (
-            <div className="flex justify-between items-baseline">
-              <TermLabel>pot cap</TermLabel>
-              <TermValue>
-                {fmtC(roundInfo[7])} CLAWD {isPotCapReached ? "// REACHED" : ""}
-              </TermValue>
-            </div>
-          )}
         </div>
       </div>
 
