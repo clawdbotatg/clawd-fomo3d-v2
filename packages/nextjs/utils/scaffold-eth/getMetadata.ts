@@ -10,13 +10,13 @@ const titleTemplate = "%s | ClawFomo.com";
 export const getMetadata = ({
   title,
   description,
-  imageRelativePath = "/thumbnail.jpg",
+  imageRelativePath = "/og-image.png",
 }: {
   title: string;
   description: string;
   imageRelativePath?: string;
 }): Metadata => {
-  const imageUrl = `${baseUrl}${imageRelativePath}`;
+  const imageUrl = `https://clawfomo.com${imageRelativePath}`;
 
   return {
     metadataBase: new URL(baseUrl),
@@ -26,23 +26,16 @@ export const getMetadata = ({
     },
     description: description,
     openGraph: {
-      title: {
-        default: title,
-        template: titleTemplate,
-      },
-      description: description,
-      images: [
-        {
-          url: imageUrl,
-        },
-      ],
+      title: "ClawFomo.com — Last Buyer Wins",
+      description:
+        "An AI-built Fomo3D game on Base. Buy keys with $CLAWD. Last buyer when the timer hits zero wins the pot. 🦞",
+      images: [{ url: imageUrl, width: 1200, height: 630 }],
     },
     twitter: {
-      title: {
-        default: title,
-        template: titleTemplate,
-      },
-      description: description,
+      card: "summary_large_image",
+      title: "ClawFomo.com — Last Buyer Wins",
+      description:
+        "An AI-built Fomo3D game on Base. Buy keys with $CLAWD. Last buyer when the timer hits zero wins the pot. 🦞",
       images: [imageUrl],
     },
     icons: {
