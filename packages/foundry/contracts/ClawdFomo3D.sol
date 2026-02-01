@@ -8,7 +8,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
- * @title ClawdFomo3D v6
+ * @title ClawdFomo3D v7
  * @notice Safer FOMO3D king-of-the-hill game with $CLAWD tokens.
  *         Last buyer wins when countdown timer expires.
  *         Rounds have no hard cap — they run indefinitely as long as keys are bought.
@@ -20,8 +20,13 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
  *   #8  - Dividend dust tracking (remainder carried forward)
  *   #10 - Grace period for endRound (lastBuyer priority)
  *   #11 - Round deadlock fix (endRound resets if no buys)
+ *   #12 - Per-buy dividend distribution (v7 fix — core Fomo3D mechanic)
  *
  * Trial round: configurable max pot size cap.
+ *
+ * v7 dividend flow:
+ *   On each buy: 10% burned, 25% of after-burn to existing key holders, 75% of after-burn to pot.
+ *   On round end: pot split 50% winner / 20% burn / 25% dividends (bonus) / 5% next round seed.
  */
 contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
@@ -33,6 +38,8 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     uint256 public constant DIVIDENDS_BPS = 2500;          // 25% to key holders
     uint256 public constant NEXT_ROUND_SEED_BPS = 500;    // 5% seeds next round's pot
     uint256 public constant BPS = 10000;
+
+    uint256 public constant BUY_DIVIDENDS_BPS = 2500;       // 25% of after-burn to existing key holders on each buy
 
     uint256 public constant ANTI_SNIPE_THRESHOLD = 2 minutes;
     uint256 public constant ANTI_SNIPE_EXTENSION = 2 minutes;
@@ -153,7 +160,7 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
 
         // 10% burn on buy
         uint256 burnAmount = (cost * BURN_ON_BUY_BPS) / BPS;
-        uint256 toPot = cost - burnAmount;
+        uint256 afterBurn = cost - burnAmount;
 
         // Transfer CLAWD from buyer
         clawd.safeTransferFrom(msg.sender, address(this), cost);
@@ -162,13 +169,21 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         clawd.safeTransfer(DEAD, burnAmount);
         totalBurned += burnAmount;
 
-        // Add to pot
-        pot += toPot;
+        // #12: Distribute dividends to existing key holders BEFORE adding buyer's keys
+        // 25% of after-burn goes to existing holders; 75% goes to pot
+        uint256 dividendAmount = 0;
+        if (totalKeys > 0) {
+            dividendAmount = (afterBurn * BUY_DIVIDENDS_BPS) / BPS;
+            pointsPerKey += (dividendAmount * MAGNITUDE) / totalKeys;
+        }
+
+        // Add remainder to pot (if no existing holders, full afterBurn goes to pot)
+        pot += (afterBurn - dividendAmount);
 
         // Update player keys
         Player storage player = players[currentRound][msg.sender];
         player.keys += numKeys;
-        // Adjust points correction so existing dividends aren't diluted
+        // Adjust points correction so buyer doesn't earn from their own purchase
         player.pointsCorrection -= int256(pointsPerKey * numKeys);
 
         totalKeys += numKeys;

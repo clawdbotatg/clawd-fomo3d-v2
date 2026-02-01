@@ -119,40 +119,33 @@ contract ClawdFomo3DTest is Test {
     }
 
     function test_SingleRoundDividends() public {
-        // Alice buys 100 keys
+        // Alice buys 100 keys (first buyer — no existing holders, no per-buy dividends)
         _buyKeys(alice, 100);
-        // Bob buys 50 keys (after Alice)
+        // Bob buys 50 keys (Alice has 100 existing keys → per-buy dividends go to Alice)
         _buyKeys(bob, 50);
-
-        uint256 pot = game.pot();
-        uint256 dividendsPayout = (pot * 2500) / 10000; // 25%
 
         // End round (Bob is last buyer)
         _endRoundAsLastBuyer();
 
-        // Check Alice's dividends
+        // v7: Alice earns MORE than proportional share because she gets per-buy dividends
+        // from Bob's purchase PLUS her share of end-round dividends.
+        // Bob only gets his share of end-round dividends (no one bought after him during the round).
         uint256 alicePending = game.pendingDividends(1, alice);
-        // Alice had 100/150 keys when dividends were distributed
-        // But Alice bought first so correction was 0
-        // Bob bought second, his correction accounts for pre-existing PPK
-        // Actually PPK was 0 when Alice bought (first buyer), so correction = 0
-        // When Bob bought at key 100+, correction = -(PPK * 50) but PPK was still 0
-        // Dividends distributed: PPK += dividendsPayout * MAG / 150
-        // Alice owed: (PPK * 100 + 0) / MAG = dividendsPayout * 100 / 150
-        uint256 expectedAlice = (dividendsPayout * 100) / 150;
-        // Allow for rounding (off by at most 1 due to integer division)
-        assertApproxEqAbs(alicePending, expectedAlice, 1, "Alice gets 100/150 of dividends");
-
         uint256 bobPending = game.pendingDividends(1, bob);
-        uint256 expectedBob = (dividendsPayout * 50) / 150;
-        assertApproxEqAbs(bobPending, expectedBob, 1, "Bob gets 50/150 of dividends");
 
-        // Claim dividends
+        assertTrue(alicePending > 0, "Alice has dividends");
+        assertTrue(bobPending > 0, "Bob has dividends");
+        assertTrue(alicePending > bobPending, "Early buyer (Alice) earns more than late buyer (Bob)");
+
+        // Both should be claimable (solvency)
         uint256 aliceBefore = clawd.balanceOf(alice);
         vm.prank(alice);
         game.claimDividends(1);
         uint256 aliceAfter = clawd.balanceOf(alice);
-        assertApproxEqAbs(aliceAfter - aliceBefore, expectedAlice, 1, "Alice claims correct amount");
+        assertEq(aliceAfter - aliceBefore, alicePending, "Alice claims correct amount");
+
+        vm.prank(bob);
+        game.claimDividends(1);
     }
 
     function test_CannotBuyAfterRoundEnd() public {
@@ -364,15 +357,9 @@ contract ClawdFomo3DTest is Test {
     }
 
     function test_MultiPlayerDividendSplit() public {
-        // Alice buys 100 keys
+        // Alice buys 100 keys (first buyer — no per-buy dividends)
         _buyKeys(alice, 100);
-        // Bob buys 100 keys — should get equal share since PPK was 0 when both bought
-        // Wait, Alice buys first so PPK=0, then Bob buys and PPK still 0
-        // Both get correction = 0. When dividends distributed, PPK set.
-        // Alice: (PPK * 100 + 0) / MAG
-        // Bob: (PPK * 100 + 0) / MAG
-        // Actually no — Bob's correction is -(PPK * 100) where PPK was 0 at time of buy = 0
-        // So both get PPK * 100 / MAG = dividends * 100/200 = 50% each
+        // Bob buys 100 keys (Alice gets per-buy dividends from Bob's purchase)
         _buyKeys(bob, 100);
 
         _endRoundAsLastBuyer();
@@ -380,8 +367,17 @@ contract ClawdFomo3DTest is Test {
         uint256 aliceDivs = game.pendingDividends(1, alice);
         uint256 bobDivs = game.pendingDividends(1, bob);
 
-        // Should be approximately equal (same number of keys)
-        assertApproxEqAbs(aliceDivs, bobDivs, 1, "Equal keys = equal dividends");
+        // v7: Alice earns MORE despite equal keys, because she bought first and
+        // received per-buy dividends when Bob bought. This is the core Fomo3D
+        // early-buyer advantage mechanic.
+        assertTrue(aliceDivs > bobDivs, "First buyer earns more (per-buy dividends)");
+        assertTrue(bobDivs > 0, "Second buyer still earns end-round dividends");
+
+        // Both claimable (solvency)
+        vm.prank(alice);
+        game.claimDividends(1);
+        vm.prank(bob);
+        game.claimDividends(1);
     }
 
     function test_PlayerBuysAcrossMultipleRounds() public {
@@ -391,8 +387,9 @@ contract ClawdFomo3DTest is Test {
 
         uint256 aliceR1Divs = game.pendingDividends(1, alice);
 
-        // Alice also plays Round 2
+        // Alice also plays Round 2 (buys first)
         _buyKeys(alice, 50);
+        // Bob buys second → Alice gets per-buy dividends from Bob's purchase
         _buyKeys(bob, 50);
         _endRoundAsLastBuyer();
 
@@ -404,10 +401,18 @@ contract ClawdFomo3DTest is Test {
             "R1 dividends unchanged after R2"
         );
 
-        // R2 dividends: Alice has 50/100 = 50%
+        // v7: Alice earns MORE in R2 despite equal keys, because she bought first
+        // and received per-buy dividends from Bob's purchase
         uint256 aliceR2Divs = game.pendingDividends(2, alice);
         uint256 bobR2Divs = game.pendingDividends(2, bob);
-        assertApproxEqAbs(aliceR2Divs, bobR2Divs, 1, "Equal R2 keys = equal R2 dividends");
+        assertTrue(aliceR2Divs > bobR2Divs, "First buyer earns more in R2 (per-buy dividends)");
+        assertTrue(bobR2Divs > 0, "Bob still earns end-round R2 dividends");
+
+        // Both claimable (solvency)
+        vm.prank(alice);
+        game.claimDividends(2);
+        vm.prank(bob);
+        game.claimDividends(2);
     }
 
     function test_NextRoundSeed() public {
@@ -459,6 +464,39 @@ contract ClawdFomo3DTest is Test {
         vm.prank(bob);
         vm.expectRevert("Pot cap reached, wait for round to end");
         game.buyKeys(1);
+    }
+
+    function test_PerBuyDividendsDuringRound() public {
+        // v7 core test: dividends accumulate DURING the round, not just at endRound
+
+        // Alice buys 10 keys — first buyer, no dividends yet
+        _buyKeys(alice, 10);
+        assertEq(game.pendingDividends(1, alice), 0, "No dividends yet (first buyer)");
+
+        // Bob buys 5 keys — Alice should IMMEDIATELY have pending dividends
+        _buyKeys(bob, 5);
+        uint256 aliceDivsAfterBob = game.pendingDividends(1, alice);
+        assertTrue(aliceDivsAfterBob > 0, "Alice earns per-buy dividends when Bob buys");
+
+        // Bob should have 0 (no one bought after him yet)
+        assertEq(game.pendingDividends(1, bob), 0, "Bob has no dividends yet");
+
+        // Carol buys 5 keys — both Alice and Bob should earn
+        _buyKeys(carol, 5);
+        uint256 aliceDivsAfterCarol = game.pendingDividends(1, alice);
+        uint256 bobDivsAfterCarol = game.pendingDividends(1, bob);
+        assertTrue(aliceDivsAfterCarol > aliceDivsAfterBob, "Alice earns more when Carol buys");
+        assertTrue(bobDivsAfterCarol > 0, "Bob earns when Carol buys");
+
+        // Alice should earn more than Bob from Carol's purchase (10 keys vs 5 keys)
+        uint256 aliceIncrease = aliceDivsAfterCarol - aliceDivsAfterBob;
+        assertTrue(aliceIncrease > bobDivsAfterCarol, "Alice (10 keys) earns more than Bob (5 keys) from Carol's buy");
+
+        // All claimable before round ends
+        vm.prank(alice);
+        game.claimDividends(1);
+        vm.prank(bob);
+        game.claimDividends(1);
     }
 
     function test_PauseBlocks() public {
