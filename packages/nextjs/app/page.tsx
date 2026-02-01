@@ -9,7 +9,7 @@ import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaf
 import { notification } from "~~/utils/scaffold-eth";
 
 const CLAWD_TOKEN = "0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07";
-const FOMO3D_ADDRESS = "0x3AA727a5AA8F472020B5aF5b3b10371C79C7002c";
+const FOMO3D_ADDRESS = "0x572Bc6149a5A9b013b5e9c370aEf6Fec8388F53f";
 const TARGET_CHAIN_ID = 8453;
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
@@ -335,7 +335,10 @@ export default function Home() {
 
   // ============ RENDER ============
   return (
-    <div className="relative z-[1] flex flex-col items-center gap-0 p-4 md:px-6 max-w-4xl mx-auto pb-16 font-mono">
+    <div
+      className="relative z-[1] flex flex-col items-center gap-0 p-4 md:px-6 max-w-4xl mx-auto pb-16 font-mono"
+      onClick={e => triggerConfetti(e.clientX, e.clientY)}
+    >
       {/* ═══════════════════════════════════════
           HERO — COUNTDOWN TIMER
          ═══════════════════════════════════════ */}

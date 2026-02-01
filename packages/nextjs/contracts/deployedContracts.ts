@@ -89,7 +89,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     ClawdFomo3D: {
-      address: "0x3AA727a5AA8F472020B5aF5b3b10371C79C7002c",
+      address: "0x572bc6149a5a9b013b5e9c370aef6fec8388f53f",
       abi: [
         {
           type: "constructor",
@@ -1107,7 +1107,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 41583918,
+      deployedOnBlock: 41585736,
     },
   },
 } as const;
