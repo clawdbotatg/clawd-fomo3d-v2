@@ -448,12 +448,17 @@ export default function Home() {
           {">> BUY $CLAWD <<"}
         </a>
         {address && clawdBalance !== undefined && (
-          <span
-            className="text-[#ff4444] font-mono text-sm tracking-wider"
-            style={{ textShadow: "0 0 8px rgba(255,34,34,0.5)" }}
-          >
-            YOUR_BALANCE: <span className="font-bold text-glow">{fmtC(clawdBalance)}</span> CLAWD
-          </span>
+          <div className="flex flex-col items-center md:items-start">
+            <span
+              className="text-[#ff4444] font-mono text-sm tracking-wider"
+              style={{ textShadow: "0 0 8px rgba(255,34,34,0.5)" }}
+            >
+              YOUR_BALANCE: <span className="font-bold text-glow">{fmtC(clawdBalance)}</span> CLAWD
+            </span>
+            {clawdPrice > 0 && clawdBalance > 0n && (
+              <span className="text-[#aaaaaa] font-mono text-xs tracking-wider mt-0.5">~{toUsd(clawdBalance)}</span>
+            )}
+          </div>
         )}
       </div>
 
