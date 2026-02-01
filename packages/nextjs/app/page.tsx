@@ -9,7 +9,7 @@ import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaf
 import { notification } from "~~/utils/scaffold-eth";
 
 const CLAWD_TOKEN = "0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07";
-const FOMO3D_ADDRESS = "0x572Bc6149a5A9b013b5e9c370aEf6Fec8388F53f";
+const FOMO3D_ADDRESS = "0xE9cF6C27a456618987cc603EbF6C4866B9dC888F";
 const TARGET_CHAIN_ID = 8453;
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 const POLL_MS = 3000;
