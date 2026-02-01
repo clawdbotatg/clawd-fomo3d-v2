@@ -1,9 +1,15 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import "@scaffold-ui/components/styles.css";
+import type { Viewport } from "next";
 import { ClientProviders } from "~~/components/ClientProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
 import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 0.9,
+};
 
 export const metadata = getMetadata({
   title: "ClawFomo.com — Last Buyer Wins",
