@@ -572,7 +572,8 @@ export default function Home() {
             <div className="text-sm font-bold text-[#f0e6ff] mb-1">1. BUY A KEY</div>
             <div className="text-xs text-[#8b7aaa] leading-relaxed">
               Adds time to the clock. Makes YOU the King.
-              <span className="text-[#c9a0ff]"> Bonus:</span> Key holders split 25% of the pot when the round ends!
+              <span className="text-[#c9a0ff]"> Bonus:</span> Key holders earn 22.5% of every purchase + split 25% of
+              the pot at round end!
             </div>
           </div>
           <div className="card-glass rounded-xl p-4">
@@ -823,7 +824,8 @@ export default function Home() {
               </div>
               {playerInfo && playerInfo[0] > 0n && playerInfo[1] === 0n && isRoundActive && (
                 <div className="text-[10px] text-[#8b7aaa]/70 ml-1 -mt-1 mb-1">
-                  💡 dividends are distributed when the round ends (25% of pot split by keys held)
+                  💡 dividends flow to key holders on every purchase (22.5% of each buy) — claim anytime! Plus 25% of
+                  the pot as a bonus when the round ends.
                 </div>
               )}
               {playerInfo && playerInfo[0] > 0n && isRoundActive && roundInfo && roundInfo[4] > 0n && (
@@ -1019,7 +1021,7 @@ export default function Home() {
           </div>
           <div className="flex justify-between">
             <TermLabel>💎 key holder dividends</TermLabel>
-            <TermValue>25%</TermValue>
+            <TermValue>22.5% per buy + 25% end-of-round</TermValue>
           </div>
           <div className="flex justify-between">
             <TermLabel>🌱 next round seed</TermLabel>
