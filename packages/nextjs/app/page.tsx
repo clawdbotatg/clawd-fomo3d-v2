@@ -163,9 +163,11 @@ export default function Home() {
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
   const { trigger: triggerConfetti } = useLobsterConfetti();
+  const pageRef = useRef<HTMLDivElement>(null);
   const buyBtnRef = useRef<HTMLButtonElement>(null);
 
   const [numKeys, setNumKeys] = useState("1");
+  const [isShaking, setIsShaking] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
@@ -450,6 +452,9 @@ export default function Home() {
       await writeFomo({ functionName: "buyKeys", args: [BigInt(keysNum)] });
       notification.success(`ACQUIRED ${keysNum} KEY${keysNum > 1 ? "S" : ""} 🦞`);
       fireConfetti(e);
+      // Screen shake
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 300);
     } catch (err: unknown) {
       notification.error(decodeError(err));
     } finally {
@@ -492,7 +497,8 @@ export default function Home() {
   // ============ RENDER ============
   return (
     <div
-      className="relative z-[1] flex flex-col items-center gap-0 p-4 md:px-6 max-w-4xl mx-auto pb-16 font-mono"
+      ref={pageRef}
+      className={`relative z-[1] flex flex-col items-center gap-0 p-4 md:px-6 max-w-4xl mx-auto pb-16 font-mono ${isShaking ? "shake" : ""}`}
       onClick={e => triggerConfetti(e.clientX, e.clientY)}
     >
       {/* ═══════════════════════════════════════
@@ -700,7 +706,7 @@ export default function Home() {
               {[1, 5, 10, 25, 50, 100].map(n => (
                 <button
                   key={n}
-                  className={`flex-1 py-1.5 text-xs font-mono font-bold tracking-wider transition-all border rounded-lg ${
+                  className={`flex-1 py-1.5 text-xs font-mono font-bold tracking-wider transition-all border rounded-lg cursor-pointer ${
                     numKeys === String(n)
                       ? "border-[#7c3aed]/70 bg-[#7c3aed]/25 text-[#c9a0ff]"
                       : "border-[#7c3aed]/30 text-[#8b7aaa] hover:border-[#7c3aed]/55 hover:text-[#c9a0ff]"
