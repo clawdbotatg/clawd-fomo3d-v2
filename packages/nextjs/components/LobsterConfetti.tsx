@@ -74,8 +74,8 @@ export function useLobsterConfetti() {
         ctx.rotate(p.rotation);
         ctx.globalAlpha = p.opacity;
 
-        // Red glow behind each particle to match terminal theme
-        ctx.shadowColor = "rgba(255, 34, 34, 0.8)";
+        // Purple/orange glow behind each particle
+        ctx.shadowColor = "rgba(249, 115, 22, 0.8)";
         ctx.shadowBlur = 12;
 
         ctx.font = `${Math.round(24 * p.scale)}px serif`;

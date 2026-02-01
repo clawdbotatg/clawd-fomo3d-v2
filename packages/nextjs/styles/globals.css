@@ -16,27 +16,27 @@
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #ff4444;
-  --color-primary-content: #1c1c22;
-  --color-secondary: #cc3333;
-  --color-secondary-content: #ff6666;
-  --color-accent: #ff4444;
-  --color-accent-content: #1c1c22;
-  --color-neutral: #ff4444;
-  --color-neutral-content: #1c1c22;
-  --color-base-100: #1c1c22;
-  --color-base-200: #1a1a1e;
-  --color-base-300: #222228;
-  --color-base-content: #ff4444;
-  --color-info: #cc3333;
-  --color-success: #ff4444;
-  --color-warning: #ff6666;
-  --color-error: #ff4444;
+  --color-primary: #f97316;
+  --color-primary-content: #0f0d1a;
+  --color-secondary: #7c3aed;
+  --color-secondary-content: #c9a0ff;
+  --color-accent: #f97316;
+  --color-accent-content: #0f0d1a;
+  --color-neutral: #7c3aed;
+  --color-neutral-content: #f0e6ff;
+  --color-base-100: #0f0d1a;
+  --color-base-200: #13111f;
+  --color-base-300: #1a1727;
+  --color-base-content: #f0e6ff;
+  --color-info: #7c3aed;
+  --color-success: #22c55e;
+  --color-warning: #f97316;
+  --color-error: #ef4444;
 
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
   --tt-tailw: 6px;
-  --tt-bg: #252530;
+  --tt-bg: #1a1727;
 }
 
 /*
@@ -57,8 +57,8 @@
 
   body {
     min-height: 100vh;
-    background: #1a1a1e;
-    color: #ff4444;
+    background: #0f0d1a;
+    color: #f0e6ff;
     font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', ui-monospace, monospace;
   }
 
@@ -71,7 +71,7 @@
 
 :root,
 [data-theme] {
-  background: #1a1a1e;
+  background: #0f0d1a;
 }
 
 /* ═══════════════════════════════════════════
@@ -90,8 +90,8 @@
     to bottom,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.025) 2px,
-    rgba(0, 0, 0, 0.025) 4px
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
   );
 }
 
@@ -104,45 +104,173 @@
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255, 68, 68, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 68, 68, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(124, 58, 237, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 /* ═══════════════════════════════════════════
-   RED GLOW TEXT
+   GLASSMORPHISM CARD
+   ═══════════════════════════════════════════ */
+.card-glass {
+  background: rgba(124, 58, 237, 0.06);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  box-shadow:
+    0 0 20px rgba(124, 58, 237, 0.05),
+    inset 0 0 30px rgba(124, 58, 237, 0.02);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.card-glass:hover {
+  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow:
+    0 0 25px rgba(124, 58, 237, 0.08),
+    inset 0 0 30px rgba(124, 58, 237, 0.03);
+}
+
+/* ═══════════════════════════════════════════
+   GLOW TEXT — orange glow
    ═══════════════════════════════════════════ */
 .text-glow {
   text-shadow:
-    0 0 10px rgba(255, 68, 68, 0.8),
-    0 0 25px rgba(255, 68, 68, 0.5),
-    0 0 50px rgba(255, 68, 68, 0.3),
-    0 0 80px rgba(255, 68, 68, 0.15);
+    0 0 10px rgba(249, 115, 22, 0.7),
+    0 0 25px rgba(249, 115, 22, 0.4),
+    0 0 50px rgba(249, 115, 22, 0.2),
+    0 0 80px rgba(249, 115, 22, 0.1);
 }
 
 .text-glow-subtle {
   text-shadow:
-    0 0 8px rgba(255, 68, 68, 0.6),
-    0 0 20px rgba(255, 68, 68, 0.35),
-    0 0 40px rgba(255, 68, 68, 0.15);
+    0 0 8px rgba(249, 115, 22, 0.5),
+    0 0 20px rgba(249, 115, 22, 0.25),
+    0 0 40px rgba(249, 115, 22, 0.1);
 }
 
 .text-glow-intense {
   text-shadow:
-    0 0 15px rgba(255, 80, 80, 1),
-    0 0 40px rgba(255, 68, 68, 0.8),
-    0 0 80px rgba(255, 68, 68, 0.5),
-    0 0 120px rgba(255, 68, 68, 0.3),
-    0 0 180px rgba(255, 68, 68, 0.15);
+    0 0 15px rgba(249, 115, 22, 1),
+    0 0 40px rgba(249, 115, 22, 0.8),
+    0 0 80px rgba(249, 115, 22, 0.5),
+    0 0 120px rgba(249, 115, 22, 0.3),
+    0 0 180px rgba(249, 115, 22, 0.15);
 }
 
 /* ═══════════════════════════════════════════
-   TERMINAL BUTTON STYLE
+   BTN-ACTION — purple accent button
+   ═══════════════════════════════════════════ */
+.btn-action {
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  color: #c9a0ff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-action:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.25);
+  border-color: rgba(124, 58, 237, 0.7);
+  box-shadow:
+    0 0 15px rgba(124, 58, 237, 0.4),
+    0 0 30px rgba(124, 58, 237, 0.2),
+    inset 0 0 15px rgba(124, 58, 237, 0.1);
+  text-shadow: 0 0 8px rgba(124, 58, 237, 0.6);
+  color: #f0e6ff;
+}
+
+.btn-action:active:not(:disabled) {
+  background: rgba(124, 58, 237, 0.35);
+  transform: scale(0.97);
+}
+
+.btn-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════
+   BTN-CROWN — main "SNATCH THE CROWN" button
+   Mango orange, big, prominent
+   ═══════════════════════════════════════════ */
+.btn-crown {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(249, 115, 22, 0.1) 100%);
+  border: 2px solid rgba(249, 115, 22, 0.6);
+  color: #f97316;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-shadow: 0 0 10px rgba(249, 115, 22, 0.6);
+  box-shadow:
+    0 0 20px rgba(249, 115, 22, 0.15),
+    inset 0 0 20px rgba(249, 115, 22, 0.05);
+}
+
+.btn-crown:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.3) 0%, rgba(249, 115, 22, 0.15) 100%);
+  border-color: rgba(249, 115, 22, 0.9);
+  box-shadow:
+    0 0 30px rgba(249, 115, 22, 0.35),
+    0 0 60px rgba(249, 115, 22, 0.15),
+    inset 0 0 25px rgba(249, 115, 22, 0.08);
+  text-shadow:
+    0 0 10px rgba(249, 115, 22, 0.9),
+    0 0 25px rgba(249, 115, 22, 0.5);
+  color: #fbbf24;
+}
+
+.btn-crown:active:not(:disabled) {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.4) 0%, rgba(249, 115, 22, 0.2) 100%);
+  transform: scale(0.97);
+}
+
+.btn-crown:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* ═══════════════════════════════════════════
+   BTN-SECONDARY — subtle secondary style
+   ═══════════════════════════════════════════ */
+.btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  color: #8b7aaa;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-secondary:hover {
+  background: rgba(124, 58, 237, 0.1);
+  border-color: rgba(124, 58, 237, 0.55);
+  color: #c9a0ff;
+  text-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
+}
+
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* ═══════════════════════════════════════════
+   TERMINAL BUTTON STYLE (legacy compat)
    ═══════════════════════════════════════════ */
 .btn-terminal {
   background: transparent;
-  border: 1px solid #ff4444;
-  color: #ff4444;
+  border: 1px solid #f97316;
+  color: #f97316;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   text-transform: uppercase;
@@ -152,16 +280,16 @@
 }
 
 .btn-terminal:hover:not(:disabled) {
-  background: rgba(255, 68, 68, 0.18);
+  background: rgba(249, 115, 22, 0.18);
   box-shadow:
-    0 0 15px rgba(255, 68, 68, 0.5),
-    0 0 30px rgba(255, 68, 68, 0.3),
-    inset 0 0 15px rgba(255, 68, 68, 0.15);
-  text-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+    0 0 15px rgba(249, 115, 22, 0.5),
+    0 0 30px rgba(249, 115, 22, 0.3),
+    inset 0 0 15px rgba(249, 115, 22, 0.15);
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.8);
 }
 
 .btn-terminal:active:not(:disabled) {
-  background: rgba(255, 68, 68, 0.25);
+  background: rgba(249, 115, 22, 0.25);
 }
 
 .btn-terminal:disabled {
@@ -170,28 +298,43 @@
 }
 
 /* ═══════════════════════════════════════════
-   RED HR DIVIDER
+   GLOWING DIVIDER
    ═══════════════════════════════════════════ */
+.divider-glow {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(124, 58, 237, 0.5) 20%,
+    rgba(124, 58, 237, 0.5) 80%,
+    transparent
+  );
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.2);
+  margin: 1rem 0;
+}
+
+/* Legacy red divider (compat) */
 .divider-red {
   border: none;
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 68, 68, 0.65) 20%,
-    rgba(255, 68, 68, 0.65) 80%,
+    rgba(124, 58, 237, 0.5) 20%,
+    rgba(124, 58, 237, 0.5) 80%,
     transparent
   );
   margin: 1rem 0;
 }
 
 /* ═══════════════════════════════════════════
-   TERMINAL BOX — bordered sections
+   TERMINAL BOX — bordered sections (legacy)
    ═══════════════════════════════════════════ */
 .terminal-box {
-  border: 1px solid rgba(255, 68, 68, 0.4);
-  background: rgba(255, 68, 68, 0.05);
-  box-shadow: 0 0 15px rgba(255, 68, 68, 0.06), inset 0 0 30px rgba(255, 68, 68, 0.02);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  background: rgba(124, 58, 237, 0.05);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.06), inset 0 0 30px rgba(124, 58, 237, 0.02);
   position: relative;
 }
 
@@ -200,9 +343,9 @@
   position: absolute;
   top: -0.5em;
   left: 0.75em;
-  background: #1a1a1e;
+  background: #0f0d1a;
   padding: 0 0.25em;
-  color: rgba(255, 68, 68, 0.7);
+  color: rgba(124, 58, 237, 0.7);
   font-size: 0.6em;
 }
 
@@ -216,7 +359,7 @@
 .corner-diamonds::before,
 .corner-diamonds::after {
   position: absolute;
-  color: rgba(255, 68, 68, 0.55);
+  color: rgba(124, 58, 237, 0.55);
   font-size: 0.5rem;
   pointer-events: none;
 }
@@ -261,6 +404,19 @@
 
 .animate-blink {
   animation: blink-cursor 1s step-end infinite;
+}
+
+/* ═══════════════════════════════════════════
+   PULSE RING — for status indicators / anti-snipe
+   ═══════════════════════════════════════════ */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s infinite;
 }
 
 /* ═══════════════════════════════════════════
@@ -311,7 +467,7 @@ input[type="number"] {
 
 .link {
   text-underline-offset: 2px;
-  color: #ff4444;
+  color: #c9a0ff;
 }
 
 .link:hover {
@@ -325,38 +481,26 @@ input[type="number"] {
 
 /* Override navbar/base backgrounds */
 .navbar {
-  background: rgba(26, 26, 30, 0.95) !important;
+  background: rgba(15, 13, 26, 0.95) !important;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.15);
 }
 
 /* ═══════════════════════════════════════════
-   PULSE RING — for status indicators
-   ═══════════════════════════════════════════ */
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.5); }
-  70% { box-shadow: 0 0 0 6px rgba(255, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
-}
-
-.animate-pulse-ring {
-  animation: pulse-ring 2s infinite;
-}
-
-/* ═══════════════════════════════════════════
-   SCROLLBAR — red terminal style
+   SCROLLBAR — purple terminal style
    ═══════════════════════════════════════════ */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1e;
+  background: #0f0d1a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 68, 68, 0.45);
+  background: rgba(124, 58, 237, 0.4);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 68, 68, 0.65);
+  background: rgba(124, 58, 237, 0.6);
 }
