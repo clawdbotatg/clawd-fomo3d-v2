@@ -828,8 +828,7 @@ export default function Home() {
               </div>
               {playerInfo && playerInfo[0] > 0n && playerInfo[1] === 0n && isRoundActive && (
                 <div className="text-[10px] text-[#8b7aaa]/70 ml-1 -mt-1 mb-1">
-                  💡 dividends flow to key holders on every purchase (22.5% of each buy) — claim anytime! Plus 25% of
-                  the pot as a bonus when the round ends.
+                  💡 22.5% of every buy flows to key holders — claim anytime!
                 </div>
               )}
               {playerInfo && playerInfo[0] > 0n && isRoundActive && roundInfo && roundInfo[4] > 0n && (
@@ -863,7 +862,9 @@ export default function Home() {
                 disabled={claimingRound === currentRound}
                 onClick={() => handleClaim(currentRound)}
               >
-                {claimingRound === currentRound ? "CLAIMING..." : `CLAIM ${fmtC(playerInfo[1])} CLAWD (ROUND ${currentRound})`}
+                {claimingRound === currentRound
+                  ? "CLAIMING..."
+                  : `CLAIM ${fmtC(playerInfo[1])} CLAWD (ROUND ${currentRound})`}
               </button>
             )}
           </div>
@@ -879,9 +880,7 @@ export default function Home() {
                 boxShadow: "0 0 25px rgba(249, 115, 22, 0.15), inset 0 0 30px rgba(249, 115, 22, 0.05)",
               }}
             >
-              <div
-                className="text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#f97316] mb-3 md:mb-4 font-bold text-glow-subtle"
-              >
+              <div className="text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#f97316] mb-3 md:mb-4 font-bold text-glow-subtle">
                 💰 UNCLAIMED DIVIDENDS — ALL ROUNDS
               </div>
 
@@ -944,9 +943,7 @@ export default function Home() {
                           </button>
                         </>
                       ) : (
-                        <span className="text-[10px] text-[#8b7aaa]">
-                          ✓ claimed {fmtCDiv(r.withdrawn)}
-                        </span>
+                        <span className="text-[10px] text-[#8b7aaa]">✓ claimed {fmtCDiv(r.withdrawn)}</span>
                       )}
                     </div>
                   </div>
@@ -964,7 +961,9 @@ export default function Home() {
               <div className="space-y-1">
                 {allRoundsDividends.map(r => (
                   <div key={r.round} className="flex justify-between text-xs">
-                    <span className="text-[#8b7aaa]">Round {r.round} ({Number(r.keys)} keys)</span>
+                    <span className="text-[#8b7aaa]">
+                      Round {r.round} ({Number(r.keys)} keys)
+                    </span>
                     <span className="text-[#c9a0ff]">✓ {fmtCDiv(r.withdrawn)} claimed</span>
                   </div>
                 ))}
