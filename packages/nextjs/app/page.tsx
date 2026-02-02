@@ -597,6 +597,17 @@ export default function Home() {
           ◆ round {currentRound || "—"} {isAntiSnipe ? "// ANTI-SNIPE" : isRoundActive ? "// ACTIVE" : "// ENDED"} ◆
         </div>
 
+        {/* POT SIZE — above countdown */}
+        <div className="mb-1 md:mb-2">
+          <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-[#c9a0ff]/50">pot: </span>
+          <span className="text-lg md:text-3xl font-black font-mono text-[#f0e6ff] text-glow">
+            {roundInfo ? fmtC(roundInfo[1]) : "—"} CLAWD
+          </span>
+          {roundInfo && clawdPrice > 0 && (
+            <span className="text-sm md:text-xl font-bold font-mono text-[#8b7aaa] ml-2">({toUsd(roundInfo[1])})</span>
+          )}
+        </div>
+
         <div
           className={`text-[2.75rem] md:text-[8rem] font-mono font-black tracking-tight leading-none my-3 md:my-6 ${
             isAntiSnipe ? "text-glow-intense animate-flicker" : isRoundActive ? "text-glow" : ""
