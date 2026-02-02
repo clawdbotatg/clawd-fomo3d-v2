@@ -18,8 +18,9 @@ interface Particle {
 
 const LOBSTER = "🦞";
 const EXTRA_EMOJIS = ["🔑", "💰", "🔥", "👑", "◆"];
-const PARTICLE_COUNT = 35;
-const GRAVITY = 0.15;
+const PARTICLE_COUNT = 14;
+const MAX_PARTICLES = 50;
+const GRAVITY = 0.18;
 
 export function useLobsterConfetti() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -74,10 +75,6 @@ export function useLobsterConfetti() {
         ctx.rotate(p.rotation);
         ctx.globalAlpha = p.opacity;
 
-        // Purple/orange glow behind each particle
-        ctx.shadowColor = "rgba(249, 115, 22, 0.8)";
-        ctx.shadowBlur = 12;
-
         ctx.font = `${Math.round(24 * p.scale)}px serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -104,9 +101,13 @@ export function useLobsterConfetti() {
       const cx = originX ?? canvas.width / 2;
       const cy = originY ?? canvas.height / 2;
 
-      for (let i = 0; i < PARTICLE_COUNT; i++) {
-        const angle = (Math.PI * 2 * i) / PARTICLE_COUNT + (Math.random() - 0.5) * 0.5;
-        const speed = 4 + Math.random() * 10;
+      // Cap total particles to prevent lag on rapid clicks
+      const budget = Math.min(PARTICLE_COUNT, MAX_PARTICLES - particlesRef.current.length);
+      if (budget <= 0) return;
+
+      for (let i = 0; i < budget; i++) {
+        const angle = (Math.PI * 2 * i) / budget + (Math.random() - 0.5) * 0.5;
+        const speed = 4 + Math.random() * 8;
         const emoji = Math.random() > 0.3 ? LOBSTER : EXTRA_EMOJIS[Math.floor(Math.random() * EXTRA_EMOJIS.length)];
         const particle: Particle = {
           x: cx + (Math.random() - 0.5) * 20,
@@ -115,10 +116,10 @@ export function useLobsterConfetti() {
           vy: Math.sin(angle) * speed - 4 - Math.random() * 3,
           rotation: Math.random() * Math.PI * 2,
           rotationSpeed: (Math.random() - 0.5) * 0.2,
-          scale: 0.8 + Math.random() * 1.2,
+          scale: 0.7 + Math.random() * 0.8,
           opacity: 1,
           life: 0,
-          maxLife: 60 + Math.floor(Math.random() * 40),
+          maxLife: 40 + Math.floor(Math.random() * 25),
           emoji,
         };
         particlesRef.current.push(particle);
