@@ -13,5 +13,12 @@ export const BlockieAvatar: AvatarComponent = ({ address, ensImage, size }) => (
     width={size}
     height={size}
     alt={`${address} avatar`}
+    style={{
+      aspectRatio: "1",
+      objectFit: "cover",
+      minWidth: size,
+      minHeight: size,
+      flexShrink: 0,
+    }}
   />
 );
