@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Address } from "@scaffold-ui/components";
-import { formatEther } from "viem";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { Abi, formatEther } from "viem";
+import { useAccount, useChainId, useReadContracts, useSwitchChain } from "wagmi";
 import { useLobsterConfetti } from "~~/components/LobsterConfetti";
 import deployedContracts from "~~/contracts/deployedContracts";
 import externalContracts from "~~/contracts/externalContracts";
@@ -254,12 +254,54 @@ export default function Home() {
     seedAmount: r.seedAmount as bigint,
   }));
 
-  const { data: prevPlayerInfo } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getPlayer",
-    args: [BigInt(currentRound > 1 ? currentRound - 1 : 1), address || ZERO_ADDR],
-    query: { refetchInterval: POLL_MS },
+  // (prevPlayerInfo removed — replaced by allRoundsDividends multi-round query below)
+
+  // ============ ALL-ROUNDS Dividend Tracking ============
+  // Build multicall contracts array for all rounds
+  const fomoAbi = deployedContracts[8453].ClawdFomo3D.abi as Abi;
+  const allRoundsContracts = useMemo(() => {
+    if (!address || !currentRound || currentRound < 1) return [];
+    return Array.from({ length: currentRound }, (_, i) => ({
+      address: FOMO3D_ADDRESS as `0x${string}`,
+      abi: fomoAbi,
+      functionName: "getPlayer" as const,
+      args: [BigInt(i + 1), address],
+    }));
+  }, [address, currentRound, fomoAbi]);
+
+  const { data: allRoundsData } = useReadContracts({
+    contracts: allRoundsContracts,
+    query: {
+      enabled: allRoundsContracts.length > 0,
+      refetchInterval: POLL_MS,
+    },
   });
+
+  // Parse all-rounds data into per-round dividend info
+  const allRoundsDividends = useMemo(() => {
+    if (!allRoundsData || !currentRound) return [];
+    return allRoundsData
+      .map((result, i) => {
+        const round = i + 1;
+        if (result.status !== "success" || !result.result) return null;
+        const [keys, pending, withdrawn] = result.result as [bigint, bigint, bigint];
+        if (keys === 0n && pending === 0n && withdrawn === 0n) return null;
+        return { round, keys, pending, withdrawn };
+      })
+      .filter(Boolean) as Array<{ round: number; keys: bigint; pending: bigint; withdrawn: bigint }>;
+  }, [allRoundsData, currentRound]);
+
+  // Total unclaimed across all rounds
+  const totalUnclaimed = useMemo(() => {
+    return allRoundsDividends.reduce((sum, r) => sum + r.pending, 0n);
+  }, [allRoundsDividends]);
+
+  // Rounds that have unclaimed dividends
+  const roundsWithUnclaimed = useMemo(() => {
+    return allRoundsDividends.filter(r => r.pending > 0n);
+  }, [allRoundsDividends]);
+
+  const [isClaimingAll, setIsClaimingAll] = useState(false);
 
   // ============ CLAWD Price ============
   useEffect(() => {
@@ -413,6 +455,37 @@ export default function Home() {
     } finally {
       setClaimingRound(null);
     }
+  };
+
+  const handleClaimAll = async () => {
+    if (roundsWithUnclaimed.length === 0) return;
+    setIsClaimingAll(true);
+    let claimed = 0;
+    let failed = 0;
+    for (const r of roundsWithUnclaimed) {
+      try {
+        await writeFomo({ functionName: "claimDividends", args: [BigInt(r.round)] });
+        claimed++;
+      } catch (err: unknown) {
+        failed++;
+        const msg = decodeError(err);
+        // If user rejected, stop the whole batch
+        if (msg === "Transaction cancelled.") {
+          notification.error("Claim cancelled.");
+          setIsClaimingAll(false);
+          return;
+        }
+        notification.error(`Round ${r.round}: ${msg}`);
+      }
+    }
+    if (claimed > 0) {
+      notification.success(`CLAIMED FROM ${claimed} ROUND${claimed > 1 ? "S" : ""} 🦞`);
+      triggerConfetti();
+    }
+    if (failed > 0 && claimed === 0) {
+      notification.error("All claims failed.");
+    }
+    setIsClaimingAll(false);
   };
 
   // ============ Derived State ============
@@ -736,7 +809,7 @@ export default function Home() {
       </div>
 
       {/* ═══════════════════════════════════════
-          YOUR STATS
+          YOUR STATS — CURRENT ROUND
          ═══════════════════════════════════════ */}
       {address && (
         <>
@@ -797,40 +870,112 @@ export default function Home() {
                 disabled={claimingRound === currentRound}
                 onClick={() => handleClaim(currentRound)}
               >
-                {claimingRound === currentRound ? "CLAIMING..." : `CLAIM ${fmtC(playerInfo[1])} CLAWD`}
+                {claimingRound === currentRound ? "CLAIMING..." : `CLAIM ${fmtC(playerInfo[1])} CLAWD (ROUND ${currentRound})`}
               </button>
             )}
           </div>
 
-          {/* Previous round dividends */}
-          {currentRound > 1 && prevPlayerInfo && prevPlayerInfo[0] > 0n && (
-            <div className="w-full card-glass rounded-xl p-3 md:p-5 mt-3">
-              <div className="text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-3 md:mb-4">
-                ◆ dividends — round {currentRound - 1}
+          {/* ═══════════════════════════════════════
+              CLAIM ALL DIVIDENDS — ALL ROUNDS
+             ═══════════════════════════════════════ */}
+          {totalUnclaimed > 0n && roundsWithUnclaimed.length > 0 && (
+            <div
+              className="w-full card-glass rounded-2xl p-3 md:p-6 mt-3"
+              style={{
+                borderColor: "rgba(249, 115, 22, 0.5)",
+                boxShadow: "0 0 25px rgba(249, 115, 22, 0.15), inset 0 0 30px rgba(249, 115, 22, 0.05)",
+              }}
+            >
+              <div
+                className="text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#f97316] mb-3 md:mb-4 font-bold text-glow-subtle"
+              >
+                💰 UNCLAIMED DIVIDENDS — ALL ROUNDS
               </div>
-              <div className="space-y-2 text-xs md:text-sm">
-                <div className="flex justify-between">
-                  <TermLabel>keys</TermLabel>
-                  <TermValue>{Number(prevPlayerInfo[0]).toLocaleString()}</TermValue>
-                </div>
-                <div className="flex justify-between">
-                  <TermLabel>pending</TermLabel>
-                  <TermValue glow>{fmtCDiv(prevPlayerInfo[1])} CLAWD</TermValue>
-                </div>
-                <div className="flex justify-between">
-                  <TermLabel>claimed</TermLabel>
-                  <span className="text-[#c9a0ff]">{fmtCDiv(prevPlayerInfo[2])} CLAWD</span>
-                </div>
-              </div>
-              {prevPlayerInfo[1] > 0n && (
-                <button
-                  className="btn-action rounded-xl w-full mt-4 py-2.5 text-sm"
-                  disabled={claimingRound === currentRound - 1}
-                  onClick={() => handleClaim(currentRound - 1)}
+
+              {/* Total unclaimed — big number */}
+              <div className="text-center py-2 px-2 md:py-3 md:px-4 rounded-xl bg-[#f97316]/10 border border-[#f97316]/30 mb-4">
+                <div className="text-[10px] tracking-[0.3em] uppercase text-[#f97316]/65 mb-1">total to claim</div>
+                <div
+                  className="text-2xl md:text-4xl font-black font-mono tracking-tight text-glow"
+                  style={{ color: "#f0e6ff" }}
                 >
-                  {claimingRound === currentRound - 1 ? "CLAIMING..." : `CLAIM ${fmtC(prevPlayerInfo[1])} CLAWD`}
-                </button>
+                  {fmtCP(totalUnclaimed)} CLAWD
+                </div>
+                <div className="text-sm md:text-lg font-bold font-mono mt-1" style={{ color: "#8b7aaa" }}>
+                  → {toUsd(totalUnclaimed)}
+                </div>
+              </div>
+
+              {/* CLAIM ALL button */}
+              <button
+                className="btn-crown rounded-xl w-full py-3 md:py-4 text-base md:text-xl hover:scale-[1.03] active:scale-95 mb-4 animate-pulse"
+                disabled={isClaimingAll || wrongNetwork}
+                onClick={handleClaimAll}
+              >
+                {isClaimingAll
+                  ? "CLAIMING..."
+                  : wrongNetwork
+                    ? "SWITCH TO BASE"
+                    : `🦞 CLAIM ALL — ${fmtC(totalUnclaimed)} CLAWD`}
+              </button>
+
+              {roundsWithUnclaimed.length > 1 && (
+                <div className="text-[10px] text-[#8b7aaa] text-center mb-3">
+                  {roundsWithUnclaimed.length} rounds with unclaimed dividends — each requires a separate transaction
+                </div>
               )}
+
+              {/* Per-round breakdown */}
+              <div className="space-y-2">
+                {allRoundsDividends.map(r => (
+                  <div
+                    key={r.round}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-lg bg-[#1a1520]/50 border border-[#7c3aed]/20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-[#f97316] text-xs font-bold">R{r.round}</span>
+                      <span className="text-[10px] text-[#8b7aaa]">{Number(r.keys).toLocaleString()} keys</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {r.pending > 0n ? (
+                        <>
+                          <span className="text-xs font-mono text-[#f0e6ff] font-bold text-glow">
+                            {fmtCDiv(r.pending)} CLAWD
+                          </span>
+                          <button
+                            className="btn-action rounded-lg px-3 py-1 text-[10px]"
+                            disabled={claimingRound === r.round || isClaimingAll}
+                            onClick={() => handleClaim(r.round)}
+                          >
+                            {claimingRound === r.round ? "..." : "CLAIM"}
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-[10px] text-[#8b7aaa]">
+                          ✓ claimed {fmtCDiv(r.withdrawn)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Show all-rounds summary even if nothing to claim (but player participated) */}
+          {allRoundsDividends.length > 0 && totalUnclaimed === 0n && (
+            <div className="w-full card-glass rounded-xl p-3 md:p-4 mt-3">
+              <div className="text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-2">
+                ◆ dividend history
+              </div>
+              <div className="space-y-1">
+                {allRoundsDividends.map(r => (
+                  <div key={r.round} className="flex justify-between text-xs">
+                    <span className="text-[#8b7aaa]">Round {r.round} ({Number(r.keys)} keys)</span>
+                    <span className="text-[#c9a0ff]">✓ {fmtCDiv(r.withdrawn)} claimed</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </>
