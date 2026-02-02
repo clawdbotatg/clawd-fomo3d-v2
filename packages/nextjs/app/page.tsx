@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Address } from "@scaffold-ui/components";
-import { Abi, formatEther } from "viem";
-import { useAccount, useChainId, useReadContracts, useSwitchChain } from "wagmi";
+import { formatEther } from "viem";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { useLobsterConfetti } from "~~/components/LobsterConfetti";
 import deployedContracts from "~~/contracts/deployedContracts";
 import externalContracts from "~~/contracts/externalContracts";
@@ -222,21 +222,37 @@ export default function Home() {
   const { writeContractAsync: writeFomo } = useScaffoldWriteContract({ contractName: "ClawdFomo3D" });
   const { writeContractAsync: writeClawd } = useScaffoldWriteContract({ contractName: "CLAWD" });
 
-  // ============ Round History ============
-  const [roundHistory, setRoundHistory] = useState<
-    Array<{
-      round: number;
-      winner: string;
-      potSize: bigint;
-      winnerPayout: bigint;
-      burned: bigint;
-      totalKeys: bigint;
-      endTime: bigint;
-      playerKeys: bigint;
-      playerPending: bigint;
-      playerWithdrawn: bigint;
-    }>
-  >([]);
+  // ============ Round History (batch reads — no multicall needed) ============
+  const INITIAL_ROUNDS = 10;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [visibleRounds, setVisibleRounds] = useState(INITIAL_ROUNDS);
+
+  const { data: latestRoundsData } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getLatestRounds",
+    args: [BigInt(visibleRounds)],
+    query: { refetchInterval: undefined }, // Past rounds are immutable — no polling needed
+  });
+
+  const { data: roundCount } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "getRoundCount",
+    query: { refetchInterval: POLL_MS },
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const totalCompletedRounds = roundCount ? Number(roundCount) - 1 : 0;
+
+  const roundHistory = (latestRoundsData || []).map((r: any) => ({
+    round: Number(r.roundId),
+    winner: r.winner as string,
+    potSize: r.potSize as bigint,
+    winnerPayout: r.winnerPayout as bigint,
+    burned: r.burnAmount as bigint,
+    totalKeys: r.totalKeys as bigint,
+    dividendsPayout: r.dividendsPayout as bigint,
+    seedAmount: r.seedAmount as bigint,
+  }));
 
   const { data: prevPlayerInfo } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
@@ -244,85 +260,6 @@ export default function Home() {
     args: [BigInt(currentRound > 1 ? currentRound - 1 : 1), address || ZERO_ADDR],
     query: { refetchInterval: POLL_MS },
   });
-
-  // Dynamic round history — reads all past rounds via multicall
-  const fomoAbi = deployedContracts[TARGET_CHAIN_ID].ClawdFomo3D.abi as Abi;
-  const fomoAddr = FOMO3D_ADDRESS;
-  const pastRounds = currentRound > 1 ? currentRound - 1 : 0;
-
-  const historyContracts = useMemo(() => {
-    if (pastRounds === 0) return [];
-    const calls: {
-      address: `0x${string}`;
-      abi: Abi;
-      functionName: string;
-      args: readonly [bigint] | readonly [bigint, `0x${string}`];
-    }[] = [];
-    // First: getRoundResult for each past round
-    for (let i = 1; i <= pastRounds; i++) {
-      calls.push({
-        address: fomoAddr as `0x${string}`,
-        abi: fomoAbi,
-        functionName: "getRoundResult",
-        args: [BigInt(i)],
-      });
-    }
-    // Then: getPlayer for each past round (for connected address)
-    const userAddr = (address || ZERO_ADDR) as `0x${string}`;
-    for (let i = 1; i <= pastRounds; i++) {
-      calls.push({
-        address: fomoAddr as `0x${string}`,
-        abi: fomoAbi,
-        functionName: "getPlayer",
-        args: [BigInt(i), userAddr],
-      });
-    }
-    return calls;
-  }, [pastRounds, address, fomoAbi, fomoAddr]);
-
-  const { data: historyData } = useReadContracts({
-    contracts: historyContracts,
-    query: { enabled: historyContracts.length > 0, refetchInterval: POLL_MS },
-  });
-
-  useEffect(() => {
-    if (!currentRound || !historyData || pastRounds === 0) {
-      setRoundHistory([]);
-      return;
-    }
-    const history: typeof roundHistory = [];
-    for (let i = 0; i < pastRounds; i++) {
-      const resultEntry = historyData[i];
-      const playerEntry = historyData[pastRounds + i];
-      if (resultEntry?.status !== "success" || !resultEntry.result) continue;
-      const r = resultEntry.result as {
-        winner: string;
-        potSize: bigint;
-        winnerPayout: bigint;
-        burned: bigint;
-        totalKeys: bigint;
-        endTime: bigint;
-      };
-      if (r.winner === ZERO_ADDR) continue;
-      const p =
-        playerEntry?.status === "success" && playerEntry.result
-          ? (playerEntry.result as [bigint, bigint, bigint])
-          : ([0n, 0n, 0n] as [bigint, bigint, bigint]);
-      history.push({
-        round: i + 1,
-        winner: r.winner,
-        potSize: r.potSize,
-        winnerPayout: r.winnerPayout,
-        burned: r.burned,
-        totalKeys: r.totalKeys,
-        endTime: r.endTime,
-        playerKeys: p[0],
-        playerPending: p[1],
-        playerWithdrawn: p[2],
-      });
-    }
-    setRoundHistory(history.reverse());
-  }, [currentRound, historyData, pastRounds]);
 
   // ============ CLAWD Price ============
   useEffect(() => {
@@ -768,7 +705,13 @@ export default function Home() {
                 disabled={isBuying || !isRoundActive}
                 onClick={handleBuy}
               >
-                {isBuying ? "EXECUTING..." : !isRoundActive ? "ROUND ENDED" : `SNATCH THE 👑`}
+                {isBuying
+                  ? "EXECUTING..."
+                  : !isRoundActive
+                    ? "ROUND ENDED"
+                    : address && roundInfo && roundInfo[3] && roundInfo[3].toLowerCase() === address.toLowerCase()
+                      ? "BUY MORE KEYS 🔑"
+                      : "SNATCH THE 👑 CROWN"}
               </button>
             )}
 
@@ -961,8 +904,7 @@ export default function Home() {
                     <th className="text-right py-2 pr-3">WON</th>
                     <th className="text-right py-2 pr-3">BURNED</th>
                     <th className="text-right py-2">KEYS</th>
-                    {address && <th className="text-right py-2 pl-3">YOURS</th>}
-                    {address && <th className="text-right py-2 pl-3">DIVS</th>}
+                    {/* Player columns removed — batch reads don't include per-player data */}
                   </tr>
                 </thead>
                 <tbody>
@@ -976,26 +918,7 @@ export default function Home() {
                       <td className="text-right py-2 pr-3 text-[#f97316]">{fmtC(r.winnerPayout)}</td>
                       <td className="text-right py-2 pr-3">{fmtC(r.burned)}</td>
                       <td className="text-right py-2">{Number(r.totalKeys).toLocaleString()}</td>
-                      {address && <td className="text-right py-2 pl-3">{Number(r.playerKeys).toLocaleString()}</td>}
-                      {address && (
-                        <td className="text-right py-2 pl-3">
-                          {r.playerPending > 0n ? (
-                            <button
-                              className="btn-action rounded-lg px-2 py-0.5 text-[10px]"
-                              disabled={claimingRound === r.round}
-                              onClick={() => handleClaim(r.round)}
-                            >
-                              {claimingRound === r.round ? "..." : `CLAIM ${fmtC(r.playerPending)}`}
-                            </button>
-                          ) : r.playerWithdrawn > 0n ? (
-                            <span className="text-[#c9a0ff]/70">✓ {fmtC(r.playerWithdrawn)}</span>
-                          ) : r.playerKeys > 0n ? (
-                            <span className="text-[#8b7aaa]">none</span>
-                          ) : (
-                            <span className="text-[#8b7aaa]/50">—</span>
-                          )}
-                        </td>
-                      )}
+                      {/* Player-specific columns removed — batch read doesn't include per-player data */}
                     </tr>
                   ))}
                 </tbody>

@@ -90,6 +90,18 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         uint256 totalKeys;
     }
 
+    /// @notice Extended round result with computed fields for batch reads
+    struct RoundResultFull {
+        uint256 roundId;
+        address winner;
+        uint256 potSize;
+        uint256 totalKeys;
+        uint256 winnerPayout;
+        uint256 burnAmount;
+        uint256 dividendsPayout;
+        uint256 seedAmount;
+    }
+
     // ============ Events ============
     event KeysPurchased(uint256 indexed round, address indexed buyer, uint256 keys, uint256 cost, uint256 burned);
     event RoundEnded(uint256 indexed round, address indexed winner, uint256 payout, uint256 burned);
@@ -304,6 +316,63 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     /// @notice Get round result
     function getRoundResult(uint256 round) external view returns (RoundResult memory) {
         return roundResults[round];
+    }
+
+    // ============ Batch Read Functions ============
+
+    /// @notice Get the total number of rounds (including current active round)
+    function getRoundCount() external view returns (uint256) {
+        return currentRound;
+    }
+
+    /// @notice Get the latest N completed rounds, counting back from the most recent
+    /// @param count How many rounds to return (will return fewer if not enough completed rounds)
+    function getLatestRounds(uint256 count) external view returns (RoundResultFull[] memory) {
+        uint256 completedRounds = currentRound > 1 ? currentRound - 1 : 0;
+        if (count > completedRounds) count = completedRounds;
+        if (count == 0) return new RoundResultFull[](0);
+
+        RoundResultFull[] memory results = new RoundResultFull[](count);
+        for (uint256 i = 0; i < count; i++) {
+            uint256 roundId = completedRounds - i; // newest first
+            results[i] = _buildRoundResultFull(roundId);
+        }
+        return results;
+    }
+
+    /// @notice Get a batch of round results starting from a specific round
+    /// @param startRound The first round to include (1-indexed)
+    /// @param count How many rounds to return
+    function getRoundResultsBatch(uint256 startRound, uint256 count) external view returns (RoundResultFull[] memory) {
+        require(startRound > 0, "Round starts at 1");
+        uint256 completedRounds = currentRound > 1 ? currentRound - 1 : 0;
+        if (startRound > completedRounds) return new RoundResultFull[](0);
+
+        // Cap count to available rounds from startRound
+        uint256 available = completedRounds - startRound + 1;
+        if (count > available) count = available;
+        if (count == 0) return new RoundResultFull[](0);
+
+        RoundResultFull[] memory results = new RoundResultFull[](count);
+        for (uint256 i = 0; i < count; i++) {
+            results[i] = _buildRoundResultFull(startRound + i);
+        }
+        return results;
+    }
+
+    /// @dev Build a full round result from stored data + computed fields
+    function _buildRoundResultFull(uint256 roundId) internal view returns (RoundResultFull memory) {
+        RoundResult storage r = roundResults[roundId];
+        return RoundResultFull({
+            roundId: roundId,
+            winner: r.winner,
+            potSize: r.potSize,
+            totalKeys: r.totalKeys,
+            winnerPayout: r.winnerPayout,
+            burnAmount: r.burned,
+            dividendsPayout: (r.potSize * DIVIDENDS_BPS) / BPS,
+            seedAmount: (r.potSize * NEXT_ROUND_SEED_BPS) / BPS
+        });
     }
 
     // ============ Internal ============

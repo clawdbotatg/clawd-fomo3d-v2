@@ -479,6 +479,127 @@ contract ClawdFomo3DTest is Test {
         game.claimDividends(1);
     }
 
+    // ============ Batch Read Tests ============
+
+    function test_GetRoundCount() public {
+        assertEq(game.getRoundCount(), 1, "Initial round is 1");
+
+        _buyKeys(alice, 10);
+        _endRoundAsLastBuyer();
+        assertEq(game.getRoundCount(), 2, "After 1 completed round, getRoundCount = 2");
+
+        _buyKeys(bob, 5);
+        _endRoundAsLastBuyer();
+        assertEq(game.getRoundCount(), 3, "After 2 completed rounds, getRoundCount = 3");
+    }
+
+    function test_GetLatestRoundsBasic() public {
+        // No completed rounds yet
+        ClawdFomo3D.RoundResultFull[] memory empty = game.getLatestRounds(10);
+        assertEq(empty.length, 0, "No completed rounds = empty array");
+
+        // Play 3 rounds
+        _buyKeys(alice, 10);
+        _endRoundAsLastBuyer();
+
+        _buyKeys(bob, 20);
+        _endRoundAsLastBuyer();
+
+        _buyKeys(carol, 30);
+        _endRoundAsLastBuyer();
+
+        // Request 10 but only 3 completed
+        ClawdFomo3D.RoundResultFull[] memory results = game.getLatestRounds(10);
+        assertEq(results.length, 3, "Should return 3 completed rounds");
+
+        // Newest first
+        assertEq(results[0].roundId, 3, "First result is round 3 (newest)");
+        assertEq(results[1].roundId, 2, "Second result is round 2");
+        assertEq(results[2].roundId, 1, "Third result is round 1 (oldest)");
+
+        // Verify data integrity
+        assertEq(results[0].winner, carol, "Round 3 winner is Carol");
+        assertEq(results[1].winner, bob, "Round 2 winner is Bob");
+        assertEq(results[2].winner, alice, "Round 1 winner is Alice");
+
+        // Verify computed fields
+        for (uint256 i = 0; i < 3; i++) {
+            assertTrue(results[i].potSize > 0, "Pot size > 0");
+            assertTrue(results[i].totalKeys > 0, "Total keys > 0");
+            assertTrue(results[i].winnerPayout > 0, "Winner payout > 0");
+            assertTrue(results[i].burnAmount > 0, "Burn amount > 0");
+            assertEq(results[i].dividendsPayout, (results[i].potSize * 2500) / 10000, "Dividends = 25% of pot");
+            assertEq(results[i].seedAmount, (results[i].potSize * 500) / 10000, "Seed = 5% of pot");
+        }
+
+        // Request exact count
+        ClawdFomo3D.RoundResultFull[] memory two = game.getLatestRounds(2);
+        assertEq(two.length, 2, "Should return exactly 2");
+        assertEq(two[0].roundId, 3, "Newest first");
+        assertEq(two[1].roundId, 2, "Second newest");
+    }
+
+    function test_GetRoundResultsBatch() public {
+        // Play 5 rounds
+        _buyKeys(alice, 10);
+        _endRoundAsLastBuyer();
+        _buyKeys(bob, 20);
+        _endRoundAsLastBuyer();
+        _buyKeys(carol, 30);
+        _endRoundAsLastBuyer();
+        _buyKeys(alice, 40);
+        _endRoundAsLastBuyer();
+        _buyKeys(bob, 50);
+        _endRoundAsLastBuyer();
+
+        // Get rounds 2-4
+        ClawdFomo3D.RoundResultFull[] memory batch = game.getRoundResultsBatch(2, 3);
+        assertEq(batch.length, 3, "Should return 3 rounds");
+        assertEq(batch[0].roundId, 2, "Starts at round 2");
+        assertEq(batch[1].roundId, 3, "Then round 3");
+        assertEq(batch[2].roundId, 4, "Then round 4");
+
+        // Request beyond available
+        ClawdFomo3D.RoundResultFull[] memory overflow = game.getRoundResultsBatch(4, 100);
+        assertEq(overflow.length, 2, "Only 2 rounds from 4 onwards (4 and 5)");
+        assertEq(overflow[0].roundId, 4);
+        assertEq(overflow[1].roundId, 5);
+
+        // Start beyond completed rounds
+        ClawdFomo3D.RoundResultFull[] memory beyond = game.getRoundResultsBatch(10, 5);
+        assertEq(beyond.length, 0, "No rounds that far");
+    }
+
+    function test_GetLatestRoundsMatchesIndividual() public {
+        // Play 2 rounds and compare batch read to individual reads
+        _buyKeys(alice, 15);
+        _buyKeys(bob, 10);
+        _endRoundAsLastBuyer();
+
+        _buyKeys(carol, 25);
+        _endRoundAsLastBuyer();
+
+        ClawdFomo3D.RoundResultFull[] memory batch = game.getLatestRounds(2);
+
+        // Compare round 2 (batch[0]) with individual getRoundResult(2)
+        ClawdFomo3D.RoundResult memory r2 = game.getRoundResult(2);
+        assertEq(batch[0].roundId, 2);
+        assertEq(batch[0].winner, r2.winner);
+        assertEq(batch[0].potSize, r2.potSize);
+        assertEq(batch[0].totalKeys, r2.totalKeys);
+        assertEq(batch[0].winnerPayout, r2.winnerPayout);
+        assertEq(batch[0].burnAmount, r2.burned);
+
+        // Compare round 1 (batch[1]) with individual getRoundResult(1)
+        ClawdFomo3D.RoundResult memory r1 = game.getRoundResult(1);
+        assertEq(batch[1].roundId, 1);
+        assertEq(batch[1].winner, r1.winner);
+        assertEq(batch[1].potSize, r1.potSize);
+        assertEq(batch[1].totalKeys, r1.totalKeys);
+    }
+
+    // ============ Edge Cases (continued) ============
+
     function test_PauseBlocks() public {
         game.pause();
 

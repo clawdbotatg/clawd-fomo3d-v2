@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   8453: {
     ClawdFomo3D: {
-      address: "0x861e96c70a94cdebfb3fb89f3a96fe16b5e31891",
+      address: "0x23f44c39f417f16807643fc8eb3435c3e47e1a32",
       abi: [
         {
           type: "constructor",
@@ -313,6 +313,67 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "getLatestRounds",
+          inputs: [
+            {
+              name: "count",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple[]",
+              internalType: "struct ClawdFomo3D.RoundResultFull[]",
+              components: [
+                {
+                  name: "roundId",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "winner",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "potSize",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "totalKeys",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "winnerPayout",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "burnAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "dividendsPayout",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "seedAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
           name: "getPlayer",
           inputs: [
             {
@@ -339,6 +400,19 @@ const deployedContracts = {
             },
             {
               name: "withdrawn",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getRoundCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
               type: "uint256",
               internalType: "uint256",
             },
@@ -431,6 +505,72 @@ const deployedContracts = {
                 },
                 {
                   name: "totalKeys",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getRoundResultsBatch",
+          inputs: [
+            {
+              name: "startRound",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "count",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple[]",
+              internalType: "struct ClawdFomo3D.RoundResultFull[]",
+              components: [
+                {
+                  name: "roundId",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "winner",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "potSize",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "totalKeys",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "winnerPayout",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "burnAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "dividendsPayout",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "seedAmount",
                   type: "uint256",
                   internalType: "uint256",
                 },
@@ -974,48 +1114,9 @@ const deployedContracts = {
             },
           ],
         },
-        // OpenZeppelin ERC20 errors (from CLAWD token, called internally)
-        {
-          type: "error",
-          name: "ERC20InsufficientBalance",
-          inputs: [
-            { name: "sender", type: "address", internalType: "address" },
-            { name: "balance", type: "uint256", internalType: "uint256" },
-            { name: "needed", type: "uint256", internalType: "uint256" },
-          ],
-        },
-        {
-          type: "error",
-          name: "ERC20InsufficientAllowance",
-          inputs: [
-            { name: "spender", type: "address", internalType: "address" },
-            { name: "allowance", type: "uint256", internalType: "uint256" },
-            { name: "needed", type: "uint256", internalType: "uint256" },
-          ],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidSender",
-          inputs: [{ name: "sender", type: "address", internalType: "address" }],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidReceiver",
-          inputs: [{ name: "receiver", type: "address", internalType: "address" }],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidApprover",
-          inputs: [{ name: "approver", type: "address", internalType: "address" }],
-        },
-        {
-          type: "error",
-          name: "ERC20InvalidSpender",
-          inputs: [{ name: "spender", type: "address", internalType: "address" }],
-        },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 41589814,
+      deployedOnBlock: 41601556,
     },
   },
 } as const;
