@@ -57,7 +57,6 @@ const ERROR_NAMES: Record<string, string> = {
 const REVERT_MESSAGES: Array<[string, string]> = [
   ["round not active", "Round has ended."],
   ["round is active", "Round is still active."],
-  ["grace period", "Grace period active — wait 60s after timer expires."],
   ["no dividends", "Nothing to claim."],
   ["zero keys", "Buy at least 1 key."],
   ["too many keys", "Max 1000 keys per transaction."],
@@ -628,9 +627,7 @@ export default function Home() {
             <div className="text-xs md:text-sm text-[#f97316] font-bold mb-2 text-glow-subtle animate-pulse">
               🏁 ROUND OVER — DISTRIBUTE
             </div>
-            <div className="text-[10px] md:text-xs text-[#8b7aaa] mb-3">
-              60s grace for last buyer, then anyone can trigger it
-            </div>
+            <div className="text-[10px] md:text-xs text-[#8b7aaa] mb-3">anyone can trigger distribution now</div>
             {wrongNetwork ? (
               <button
                 className="btn-crown rounded-xl py-3 px-6 md:py-4 md:px-10 text-sm md:text-lg hover:scale-[1.03] active:scale-95"

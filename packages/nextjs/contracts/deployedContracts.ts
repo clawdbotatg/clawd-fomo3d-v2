@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   8453: {
     ClawdFomo3D: {
-      address: "0xd4f419065ee4b89ef8f9b2c224a9ebdee62abf54",
+      address: "0x859e5cb97e1cf357643a6633d5bec6d45e44cfd4",
       abi: [
         {
           type: "constructor",
@@ -132,19 +132,6 @@ const deployedContracts = {
         {
           type: "function",
           name: "DIVIDENDS_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "GRACE_PERIOD",
           inputs: [],
           outputs: [
             {
@@ -1148,7 +1135,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 41604118,
+      deployedOnBlock: 41606714,
     },
   },
 } as const;

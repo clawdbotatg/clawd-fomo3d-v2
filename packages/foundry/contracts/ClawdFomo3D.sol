@@ -18,7 +18,6 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
  *   #6  - Overflow protection (MAX_KEYS_PER_BUY)
  *   #7  - Constructor validation (non-zero addresses/timer)
  *   #8  - Dividend dust tracking (remainder carried forward)
- *   #10 - Grace period for endRound (lastBuyer priority)
  *   #11 - Round deadlock fix (endRound resets if no buys)
  *   #12 - Per-buy dividend distribution (v7 fix — core Fomo3D mechanic)
  *
@@ -45,8 +44,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     uint256 public constant BASE_PRICE = 1000 * 1e18;     // 1000 CLAWD base
     uint256 public constant PRICE_INCREMENT = 110 * 1e18;  // +110 CLAWD per key sold
     uint256 public constant MAX_KEYS_PER_BUY = 1000;       // #6: overflow protection
-
-    uint256 public constant GRACE_PERIOD = 60;             // #10: 60s grace for lastBuyer
 
     address public constant DEAD = 0x000000000000000000000000000000000000dEaD;
 
@@ -197,11 +194,6 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     /// @notice End the round and distribute pot
     function endRound() external nonReentrant whenNotPaused {
         require(block.timestamp >= roundEnd, "Round not ended yet");
-
-        // #10: Grace period — only lastBuyer can call in first GRACE_PERIOD seconds
-        if (block.timestamp < roundEnd + GRACE_PERIOD) {
-            require(msg.sender == lastBuyer || lastBuyer == address(0), "Grace period: only last buyer can end");
-        }
 
         // #11: If no one bought keys, reset the round instead of reverting
         if (lastBuyer == address(0) || totalKeys == 0) {
