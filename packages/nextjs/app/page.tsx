@@ -291,10 +291,19 @@ export default function Home() {
       .filter(Boolean) as Array<{ round: number; keys: bigint; pending: bigint; withdrawn: bigint }>;
   }, [allRoundsData, currentRound]);
 
-  // Total unclaimed across all rounds
+  // Total unclaimed across all rounds — use on-chain totalUnclaimedDividends() for accuracy
+  const { data: onChainTotalUnclaimed } = useScaffoldReadContract({
+    contractName: "ClawdFomo3D",
+    functionName: "totalUnclaimedDividends",
+    args: [address || ZERO_ADDR],
+    query: { refetchInterval: POLL_MS, enabled: !!address },
+  });
+
+  // Use on-chain value when available, fallback to client-side sum
   const totalUnclaimed = useMemo(() => {
+    if (onChainTotalUnclaimed !== undefined) return onChainTotalUnclaimed;
     return allRoundsDividends.reduce((sum, r) => sum + r.pending, 0n);
-  }, [allRoundsDividends]);
+  }, [onChainTotalUnclaimed, allRoundsDividends]);
 
   // Rounds that have unclaimed dividends
   const roundsWithUnclaimed = useMemo(() => {
@@ -458,34 +467,18 @@ export default function Home() {
   };
 
   const handleClaimAll = async () => {
-    if (roundsWithUnclaimed.length === 0) return;
+    if (totalUnclaimed === 0n) return;
     setIsClaimingAll(true);
-    let claimed = 0;
-    let failed = 0;
-    for (const r of roundsWithUnclaimed) {
-      try {
-        await writeFomo({ functionName: "claimDividends", args: [BigInt(r.round)] });
-        claimed++;
-      } catch (err: unknown) {
-        failed++;
-        const msg = decodeError(err);
-        // If user rejected, stop the whole batch
-        if (msg === "Transaction cancelled.") {
-          notification.error("Claim cancelled.");
-          setIsClaimingAll(false);
-          return;
-        }
-        notification.error(`Round ${r.round}: ${msg}`);
-      }
-    }
-    if (claimed > 0) {
-      notification.success(`CLAIMED FROM ${claimed} ROUND${claimed > 1 ? "S" : ""} 🦞`);
+    try {
+      await writeFomo({ functionName: "claimAllDividends" });
+      notification.success(`CLAIMED ALL DIVIDENDS 🦞`);
       triggerConfetti();
+    } catch (err: unknown) {
+      const msg = decodeError(err);
+      notification.error(msg);
+    } finally {
+      setIsClaimingAll(false);
     }
-    if (failed > 0 && claimed === 0) {
-      notification.error("All claims failed.");
-    }
-    setIsClaimingAll(false);
   };
 
   // ============ Derived State ============
@@ -921,7 +914,7 @@ export default function Home() {
 
               {roundsWithUnclaimed.length > 1 && (
                 <div className="text-[10px] text-[#8b7aaa] text-center mb-3">
-                  {roundsWithUnclaimed.length} rounds with unclaimed dividends — each requires a separate transaction
+                  {roundsWithUnclaimed.length} rounds with unclaimed dividends — claimed in one transaction ⚡
                 </div>
               )}
 

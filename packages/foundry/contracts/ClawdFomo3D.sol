@@ -8,7 +8,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
- * @title ClawdFomo3D v7
+ * @title ClawdFomo3D v9
  * @notice Safer FOMO3D king-of-the-hill game with $CLAWD tokens.
  *         Last buyer wins when countdown timer expires.
  *         Rounds have no hard cap — they run indefinitely as long as keys are bought.
@@ -269,6 +269,26 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         emit DividendsClaimed(round, msg.sender, owed);
     }
 
+    /// @notice Claim all unclaimed dividends across all rounds in a single transaction
+    /// @return totalClaimed The total amount of CLAWD claimed
+    function claimAllDividends() external nonReentrant returns (uint256 totalClaimed) {
+        uint256 rounds = currentRound;
+        totalClaimed = 0;
+
+        for (uint256 r = 1; r <= rounds; r++) {
+            Player storage player = players[r][msg.sender];
+            uint256 owed = _dividendsOf(r, msg.sender);
+            if (owed > 0) {
+                player.withdrawnDividends += owed;
+                totalClaimed += owed;
+                emit DividendsClaimed(r, msg.sender, owed);
+            }
+        }
+
+        require(totalClaimed > 0, "No dividends");
+        clawd.safeTransfer(msg.sender, totalClaimed);
+    }
+
     // ============ View Functions ============
 
     /// @notice Get the cost to buy numKeys keys at current price
@@ -284,6 +304,17 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     /// @notice Get pending dividends for a player in a round
     function pendingDividends(uint256 round, address player) external view returns (uint256) {
         return _dividendsOf(round, player);
+    }
+
+    /// @notice Get total unclaimed dividends across all rounds for a player
+    /// @param player The player address to check
+    /// @return total The total unclaimed CLAWD across all rounds
+    function totalUnclaimedDividends(address player) external view returns (uint256 total) {
+        uint256 rounds = currentRound;
+        total = 0;
+        for (uint256 r = 1; r <= rounds; r++) {
+            total += _dividendsOf(r, player);
+        }
     }
 
     /// @notice Get player info for a round

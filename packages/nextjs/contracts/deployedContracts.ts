@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   8453: {
     ClawdFomo3D: {
-      address: "0x23f44c39f417f16807643fc8eb3435c3e47e1a32",
+      address: "0xd4f419065ee4b89ef8f9b2c224a9ebdee62abf54",
       abi: [
         {
           type: "constructor",
@@ -238,6 +238,19 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "claimAllDividends",
+          inputs: [],
+          outputs: [
+            {
+              name: "totalClaimed",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
         },
         {
           type: "function",
@@ -859,6 +872,25 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "totalUnclaimedDividends",
+          inputs: [
+            {
+              name: "player",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "total",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
           name: "transferOwnership",
           inputs: [
             {
@@ -1116,7 +1148,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 41601556,
+      deployedOnBlock: 41604118,
     },
   },
 } as const;
