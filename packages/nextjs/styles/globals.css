@@ -60,6 +60,7 @@
     background: #0f0d1a;
     color: #f0e6ff;
     font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', ui-monospace, monospace;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4 {

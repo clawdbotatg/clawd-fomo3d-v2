@@ -8,7 +8,7 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const viewport: Viewport = {
   width: "device-width",
-  initialScale: 0.85,
+  initialScale: 1.0,
 };
 
 export const metadata = getMetadata({

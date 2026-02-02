@@ -498,7 +498,7 @@ export default function Home() {
   return (
     <div
       ref={pageRef}
-      className={`relative z-[1] flex flex-col items-center gap-0 p-4 md:px-6 max-w-4xl mx-auto pb-16 font-mono ${isShaking ? "shake" : ""}`}
+      className={`relative z-[1] flex flex-col items-center gap-0 px-2 py-4 md:px-6 max-w-4xl mx-auto pb-16 font-mono overflow-x-hidden ${isShaking ? "shake" : ""}`}
       onClick={e => triggerConfetti(e.clientX, e.clientY)}
     >
       {/* ═══════════════════════════════════════
@@ -506,17 +506,17 @@ export default function Home() {
          ═══════════════════════════════════════ */}
       {!disclaimerAccepted && (
         <div
-          className="w-full mb-4 mt-2 border-2 border-[#f97316] bg-[#1a1520] rounded-2xl p-5 md:p-6 font-mono relative"
+          className="w-full mb-4 mt-2 border-2 border-[#f97316] bg-[#1a1520] rounded-2xl p-3 md:p-6 font-mono relative"
           style={{
             boxShadow: "0 0 20px rgba(249,115,22,0.2), inset 0 0 30px rgba(249,115,22,0.05)",
           }}
           onClick={e => e.stopPropagation()}
         >
           <div
-            className="text-center text-sm md:text-base font-black tracking-[0.3em] uppercase mb-4 animate-pulse"
+            className="text-center text-xs md:text-base font-black tracking-[0.1em] md:tracking-[0.3em] uppercase mb-4 animate-pulse"
             style={{ color: "#f97316", textShadow: "0 0 15px rgba(249,115,22,0.9), 0 0 30px rgba(249,115,22,0.5)" }}
           >
-            ⚠ WARNING — EXPERIMENTAL SOFTWARE ⚠
+            ⚠ WARNING — EXPERIMENTAL ⚠
           </div>
 
           <div className="border-t border-[#f97316]/30 mb-4" />
@@ -539,7 +539,7 @@ export default function Home() {
 
           <div className="text-center">
             <button
-              className="px-8 py-3 font-mono font-black text-sm tracking-[0.2em] uppercase rounded-xl
+              className="px-4 md:px-8 py-3 font-mono font-black text-xs md:text-sm tracking-[0.1em] md:tracking-[0.2em] uppercase rounded-xl
                          border-2 border-[#f97316] text-[#f97316] bg-[#f97316]/10
                          hover:bg-[#f97316]/25 hover:scale-105 active:scale-95
                          transition-all duration-150 cursor-pointer
@@ -557,37 +557,39 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           HOW TO PLAY — smooth brain edition
          ═══════════════════════════════════════ */}
-      <div className="w-full card-glass rounded-2xl p-6 md:p-8 text-center mt-4 mb-2">
+      <div className="w-full card-glass rounded-2xl p-3 md:p-8 text-center mt-4 mb-2">
         <h1
-          className="text-2xl md:text-4xl font-black tracking-tight mb-1"
+          className="text-lg md:text-4xl font-black tracking-tight mb-1"
           style={{ color: "#f97316", textShadow: "0 0 20px rgba(249,115,22,0.6), 0 0 40px rgba(249,115,22,0.3)" }}
         >
           👑 LAST BUYER WINS EVERYTHING.
         </h1>
-        <p className="text-[#8b7aaa] text-xs tracking-[0.2em] uppercase mb-6">a $CLAWD king-of-the-hill game on Base</p>
+        <p className="text-[#8b7aaa] text-[10px] md:text-xs tracking-[0.1em] md:tracking-[0.2em] uppercase mb-4 md:mb-6">
+          a $CLAWD king-of-the-hill game on Base
+        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-          <div className="card-glass rounded-xl p-4">
-            <div className="text-2xl mb-2">🔑</div>
-            <div className="text-sm font-bold text-[#f0e6ff] mb-1">1. BUY A KEY</div>
-            <div className="text-xs text-[#8b7aaa] leading-relaxed">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 text-left">
+          <div className="card-glass rounded-xl p-3 md:p-4">
+            <div className="text-xl md:text-2xl mb-1 md:mb-2">🔑</div>
+            <div className="text-xs md:text-sm font-bold text-[#f0e6ff] mb-1">1. BUY A KEY</div>
+            <div className="text-[11px] md:text-xs text-[#8b7aaa] leading-relaxed">
               Adds time to the clock. Makes YOU the King.
               <span className="text-[#c9a0ff]"> Bonus:</span> Key holders earn 22.5% of every purchase + split 25% of
               the pot at round end!
             </div>
           </div>
-          <div className="card-glass rounded-xl p-4">
-            <div className="text-2xl mb-2">👑</div>
-            <div className="text-sm font-bold text-[#f0e6ff] mb-1">2. HOLD THE THRONE</div>
-            <div className="text-xs text-[#8b7aaa] leading-relaxed">
+          <div className="card-glass rounded-xl p-3 md:p-4">
+            <div className="text-xl md:text-2xl mb-1 md:mb-2">👑</div>
+            <div className="text-xs md:text-sm font-bold text-[#f0e6ff] mb-1">2. HOLD THE THRONE</div>
+            <div className="text-[11px] md:text-xs text-[#8b7aaa] leading-relaxed">
               If the timer hits <span className="text-[#f97316] font-bold">00:00:00</span> while you are King…
               <span className="text-[#f97316] font-bold"> YOU WIN THE POT.</span> 💰
             </div>
           </div>
-          <div className="card-glass rounded-xl p-4">
-            <div className="text-2xl mb-2">🔥</div>
-            <div className="text-sm font-bold text-[#f0e6ff] mb-1">3. BURN IT ALL</div>
-            <div className="text-xs text-[#8b7aaa] leading-relaxed">
+          <div className="card-glass rounded-xl p-3 md:p-4">
+            <div className="text-xl md:text-2xl mb-1 md:mb-2">🔥</div>
+            <div className="text-xs md:text-sm font-bold text-[#f0e6ff] mb-1">3. BURN IT ALL</div>
+            <div className="text-[11px] md:text-xs text-[#8b7aaa] leading-relaxed">
               Every buy burns tokens. Number go up.
               <span className="text-[#c9a0ff]"> 10% burned on every purchase + 20% of the pot at round end.</span>
             </div>
@@ -598,14 +600,13 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           HERO — COUNTDOWN TIMER
          ═══════════════════════════════════════ */}
-      <div className="w-full card-glass rounded-2xl p-6 md:p-10 text-center mt-2">
-        <div className="text-[10px] tracking-[0.4em] uppercase text-[#c9a0ff]/70 mb-1">
-          ◆ round {currentRound || "—"}{" "}
-          {isAntiSnipe ? "// ANTI-SNIPE ACTIVE" : isRoundActive ? "// ACTIVE" : "// ENDED"} ◆
+      <div className="w-full card-glass rounded-2xl p-4 md:p-10 text-center mt-2">
+        <div className="text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase text-[#c9a0ff]/70 mb-1">
+          ◆ round {currentRound || "—"} {isAntiSnipe ? "// ANTI-SNIPE" : isRoundActive ? "// ACTIVE" : "// ENDED"} ◆
         </div>
 
         <div
-          className={`text-6xl md:text-[8rem] font-mono font-black tracking-tight leading-none my-4 md:my-6 ${
+          className={`text-[2.75rem] md:text-[8rem] font-mono font-black tracking-tight leading-none my-3 md:my-6 ${
             isAntiSnipe ? "text-glow-intense animate-flicker" : isRoundActive ? "text-glow" : ""
           }`}
           style={{ color: "#f97316" }}
@@ -631,13 +632,15 @@ export default function Home() {
         {/* END ROUND — right under timer when round is over */}
         {!isRoundActive && (
           <div className="mt-6">
-            <div className="text-sm text-[#f97316] font-bold mb-2 text-glow-subtle animate-pulse">
-              🏁 ROUND OVER — TIME TO DISTRIBUTE
+            <div className="text-xs md:text-sm text-[#f97316] font-bold mb-2 text-glow-subtle animate-pulse">
+              🏁 ROUND OVER — DISTRIBUTE
             </div>
-            <div className="text-xs text-[#8b7aaa] mb-3">60s grace for last buyer, then anyone can trigger it</div>
+            <div className="text-[10px] md:text-xs text-[#8b7aaa] mb-3">
+              60s grace for last buyer, then anyone can trigger it
+            </div>
             {wrongNetwork ? (
               <button
-                className="btn-crown rounded-xl py-4 px-10 text-lg hover:scale-[1.03] active:scale-95"
+                className="btn-crown rounded-xl py-3 px-6 md:py-4 md:px-10 text-sm md:text-lg hover:scale-[1.03] active:scale-95"
                 disabled={isSwitching}
                 onClick={handleSwitch}
               >
@@ -645,11 +648,11 @@ export default function Home() {
               </button>
             ) : (
               <button
-                className="btn-crown rounded-xl py-4 px-10 text-lg hover:scale-[1.03] active:scale-95 animate-pulse"
+                className="btn-crown rounded-xl py-3 px-6 md:py-4 md:px-10 text-sm md:text-lg hover:scale-[1.03] active:scale-95 animate-pulse"
                 disabled={isEnding}
                 onClick={handleEndRound}
               >
-                {isEnding ? "EXECUTING..." : "🏁 END ROUND & DISTRIBUTE 🏁"}
+                {isEnding ? "EXECUTING..." : "🏁 END ROUND 🏁"}
               </button>
             )}
           </div>
@@ -659,7 +662,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           CURRENT LEADER
          ═══════════════════════════════════════ */}
-      <div className="w-full card-glass rounded-xl p-4 text-center mt-3">
+      <div className="w-full card-glass rounded-xl p-3 md:p-4 text-center mt-3">
         <TermLabel>👑 current king</TermLabel>
         <div className="mt-2">
           {roundInfo && roundInfo[3] && roundInfo[3] !== ZERO_ADDR ? (
@@ -678,13 +681,13 @@ export default function Home() {
           BUY KEYS — "SNATCH THE CROWN"
          ═══════════════════════════════════════ */}
       <div
-        className="w-full card-glass rounded-2xl p-5 md:p-6"
+        className="w-full card-glass rounded-2xl p-3 md:p-6"
         style={{
           borderColor: "rgba(249, 115, 22, 0.4)",
           boxShadow: "0 0 20px rgba(249, 115, 22, 0.1), inset 0 0 30px rgba(249, 115, 22, 0.03)",
         }}
       >
-        <div className="text-xs tracking-[0.3em] uppercase text-[#f97316] mb-4 font-bold text-glow-subtle">
+        <div className="text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#f97316] mb-3 md:mb-4 font-bold text-glow-subtle">
           ◆ snatch the crown ◆
         </div>
 
@@ -697,17 +700,17 @@ export default function Home() {
               max="1000"
               value={numKeys}
               onChange={e => setNumKeys(e.target.value)}
-              className="w-full bg-transparent border border-[#7c3aed]/50 rounded-xl px-4 py-3 text-center text-3xl font-bold text-[#f0e6ff] font-mono
+              className="w-full bg-transparent border border-[#7c3aed]/50 rounded-xl px-3 py-2 md:px-4 md:py-3 text-center text-2xl md:text-3xl font-bold text-[#f0e6ff] font-mono
                          focus:outline-none focus:border-[#7c3aed]/80 focus:shadow-[0_0_15px_rgba(124,58,237,0.3)] transition-all"
               placeholder="1"
             />
 
             {/* Quick select */}
-            <div className="flex gap-1.5 mt-3">
+            <div className="flex gap-1 md:gap-1.5 mt-2 md:mt-3">
               {[1, 5, 10, 25, 50, 100].map(n => (
                 <button
                   key={n}
-                  className={`flex-1 py-1.5 text-xs font-mono font-bold tracking-wider transition-all border rounded-lg cursor-pointer ${
+                  className={`flex-1 py-1 md:py-1.5 text-[10px] md:text-xs font-mono font-bold tracking-wider transition-all border rounded-lg cursor-pointer ${
                     numKeys === String(n)
                       ? "border-[#7c3aed]/70 bg-[#7c3aed]/25 text-[#c9a0ff]"
                       : "border-[#7c3aed]/30 text-[#8b7aaa] hover:border-[#7c3aed]/55 hover:text-[#c9a0ff]"
@@ -721,15 +724,15 @@ export default function Home() {
 
             {cost && (
               <div className="mt-4 space-y-2">
-                <div className="text-center py-3 px-4 rounded-xl bg-[#7c3aed]/10 border border-[#7c3aed]/30">
+                <div className="text-center py-2 px-2 md:py-3 md:px-4 rounded-xl bg-[#7c3aed]/10 border border-[#7c3aed]/30">
                   <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-1">cost</div>
                   <div
-                    className="text-3xl md:text-5xl font-black font-mono tracking-tight text-glow"
+                    className="text-xl md:text-5xl font-black font-mono tracking-tight text-glow break-all"
                     style={{ color: "#f0e6ff" }}
                   >
                     {fmtCP(cost)} CLAWD
                   </div>
-                  <div className="text-xl md:text-2xl font-bold font-mono mt-1" style={{ color: "#8b7aaa" }}>
+                  <div className="text-base md:text-2xl font-bold font-mono mt-1" style={{ color: "#8b7aaa" }}>
                     → {toUsd(cost)}
                   </div>
                 </div>
@@ -752,7 +755,7 @@ export default function Home() {
           <div className="flex flex-col justify-center md:w-64 gap-3">
             {wrongNetwork ? (
               <button
-                className="btn-action rounded-xl w-full py-5 px-8 text-base"
+                className="btn-action rounded-xl w-full py-4 px-4 md:py-5 md:px-8 text-sm md:text-base"
                 disabled={isSwitching}
                 onClick={handleSwitch}
               >
@@ -760,7 +763,7 @@ export default function Home() {
               </button>
             ) : needsApproval ? (
               <button
-                className="btn-crown rounded-xl w-full py-5 px-8 text-xl animate-pulse"
+                className="btn-crown rounded-xl w-full py-4 px-4 md:py-5 md:px-8 text-base md:text-xl animate-pulse"
                 disabled={isApproving}
                 onClick={handleApprove}
               >
@@ -769,13 +772,13 @@ export default function Home() {
             ) : (
               <button
                 ref={buyBtnRef}
-                className={`btn-crown rounded-xl w-full py-5 px-8 text-xl ${
+                className={`btn-crown rounded-xl w-full py-4 px-4 md:py-5 md:px-8 text-base md:text-xl ${
                   !isBuying && isRoundActive ? "hover:scale-[1.03] active:scale-95" : ""
                 }`}
                 disabled={isBuying || !isRoundActive}
                 onClick={handleBuy}
               >
-                {isBuying ? "EXECUTING..." : !isRoundActive ? "ROUND ENDED" : `SNATCH THE 👑 CROWN`}
+                {isBuying ? "EXECUTING..." : !isRoundActive ? "ROUND ENDED" : `SNATCH THE 👑`}
               </button>
             )}
 
@@ -805,21 +808,23 @@ export default function Home() {
       {address && (
         <>
           <TermDivider />
-          <div className="w-full card-glass rounded-2xl p-5">
-            <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-4">
+          <div className="w-full card-glass rounded-2xl p-3 md:p-5">
+            <div className="text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-3 md:mb-4">
               ◆ your stats — round {currentRound}
             </div>
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-xs md:text-sm">
               <div className="flex justify-between">
                 <TermLabel>your keys</TermLabel>
                 <TermValue>{playerInfo ? Number(playerInfo[0]).toLocaleString() : "0"}</TermValue>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-wrap justify-between gap-1">
                 <TermLabel>pending dividends</TermLabel>
-                <div>
+                <div className="text-right">
                   <TermValue glow>{playerInfo ? fmtCDiv(playerInfo[1]) : "0"} CLAWD</TermValue>
-                  <span className="text-[#8b7aaa] text-xs ml-2">→ {playerInfo ? toUsd(playerInfo[1]) : ""}</span>
+                  <span className="text-[#8b7aaa] text-[10px] md:text-xs ml-1 md:ml-2">
+                    → {playerInfo ? toUsd(playerInfo[1]) : ""}
+                  </span>
                 </div>
               </div>
               {playerInfo && playerInfo[0] > 0n && playerInfo[1] === 0n && isRoundActive && (
@@ -842,12 +847,12 @@ export default function Home() {
                 <TermLabel>claimed</TermLabel>
                 <span className="text-[#c9a0ff]">{playerInfo ? fmtCDiv(playerInfo[2]) : "0"} CLAWD</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-wrap justify-between gap-1">
                 <TermLabel>CLAWD balance</TermLabel>
-                <div>
+                <div className="text-right">
                   <TermValue>{fmtC(clawdBalance)} CLAWD</TermValue>
                   {clawdPrice > 0 && clawdBalance !== undefined && clawdBalance > 0n && (
-                    <span className="text-[#8b7aaa] text-xs ml-2">~{toUsd(clawdBalance)}</span>
+                    <span className="text-[#8b7aaa] text-[10px] md:text-xs ml-1 md:ml-2">~{toUsd(clawdBalance)}</span>
                   )}
                 </div>
               </div>
@@ -866,11 +871,11 @@ export default function Home() {
 
           {/* Previous round dividends */}
           {currentRound > 1 && prevPlayerInfo && prevPlayerInfo[0] > 0n && (
-            <div className="w-full card-glass rounded-xl p-5 mt-3">
-              <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-4">
+            <div className="w-full card-glass rounded-xl p-3 md:p-5 mt-3">
+              <div className="text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-3 md:mb-4">
                 ◆ dividends — round {currentRound - 1}
               </div>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-xs md:text-sm">
                 <div className="flex justify-between">
                   <TermLabel>keys</TermLabel>
                   <TermValue>{Number(prevPlayerInfo[0]).toLocaleString()}</TermValue>
@@ -903,36 +908,42 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           ROUND STATS
          ═══════════════════════════════════════ */}
-      <div className="w-full card-glass rounded-2xl p-5 md:p-6">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-4">◆ round stats</div>
+      <div className="w-full card-glass rounded-2xl p-3 md:p-6">
+        <div className="text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-3 md:mb-4">
+          ◆ round stats
+        </div>
 
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between items-baseline">
+        <div className="space-y-2 text-xs md:text-sm">
+          <div className="flex flex-wrap justify-between items-baseline gap-1">
             <TermLabel>💰 pot size</TermLabel>
             <div className="text-right">
               <TermValue glow>{roundInfo ? fmtC(roundInfo[1]) : "—"} CLAWD</TermValue>
-              <span className="text-[#8b7aaa] text-xs ml-2">→ {roundInfo ? toUsd(roundInfo[1]) : ""}</span>
+              <span className="text-[#8b7aaa] text-[10px] md:text-xs ml-1 md:ml-2">
+                → {roundInfo ? toUsd(roundInfo[1]) : ""}
+              </span>
             </div>
           </div>
 
-          <div className="flex justify-between items-baseline">
+          <div className="flex flex-wrap justify-between items-baseline gap-1">
             <TermLabel>🔑 key price</TermLabel>
             <div className="text-right">
               <TermValue>{roundInfo ? fmtC(roundInfo[5]) : "—"} CLAWD</TermValue>
-              <span className="text-[#8b7aaa] text-xs ml-2">→ {roundInfo ? toUsd(roundInfo[5]) : ""}</span>
+              <span className="text-[#8b7aaa] text-[10px] md:text-xs ml-1 md:ml-2">
+                → {roundInfo ? toUsd(roundInfo[5]) : ""}
+              </span>
             </div>
           </div>
 
-          <div className="flex justify-between items-baseline">
+          <div className="flex flex-wrap justify-between items-baseline gap-1">
             <TermLabel>🗝️ keys sold</TermLabel>
             <TermValue>{roundInfo ? Number(roundInfo[4]).toLocaleString() : "—"}</TermValue>
           </div>
 
-          <div className="flex justify-between items-baseline">
+          <div className="flex flex-wrap justify-between items-baseline gap-1">
             <TermLabel>🔥 total burned</TermLabel>
             <div className="text-right">
               <TermValue>{totalBurned !== undefined ? fmtC(totalBurned) : "—"} CLAWD</TermValue>
-              <span className="text-[#8b7aaa] text-xs ml-2">
+              <span className="text-[#8b7aaa] text-[10px] md:text-xs ml-1 md:ml-2">
                 → {totalBurned !== undefined ? toUsd(totalBurned) : ""}
               </span>
             </div>
@@ -946,8 +957,10 @@ export default function Home() {
       {roundHistory.length > 0 && (
         <>
           <TermDivider />
-          <div className="w-full card-glass rounded-2xl p-5">
-            <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-4">🏆 round history</div>
+          <div className="w-full card-glass rounded-2xl p-3 md:p-5">
+            <div className="text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-3 md:mb-4">
+              🏆 round history
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs font-mono">
                 <thead>
@@ -1007,28 +1020,33 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           POT DISTRIBUTION
          ═══════════════════════════════════════ */}
-      <div className="w-full card-glass rounded-2xl p-5">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-4">◆ when the timer hits zero</div>
+      <div className="w-full card-glass rounded-2xl p-3 md:p-5">
+        <div className="text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.3em] uppercase text-[#c9a0ff]/65 mb-3 md:mb-4">
+          ◆ when timer hits zero
+        </div>
 
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <TermLabel>👑 winner (last buyer)</TermLabel>
+        <div className="space-y-2 text-xs md:text-sm">
+          <div className="flex flex-wrap justify-between gap-1">
+            <TermLabel>👑 winner</TermLabel>
             <TermValue glow>50%</TermValue>
           </div>
-          <div className="flex justify-between">
-            <TermLabel>🔥 burned forever</TermLabel>
+          <div className="flex flex-wrap justify-between gap-1">
+            <TermLabel>🔥 burned</TermLabel>
             <TermValue>20%</TermValue>
           </div>
-          <div className="flex justify-between">
-            <TermLabel>💎 key holder dividends</TermLabel>
-            <TermValue>22.5% per buy + 25% end-of-round</TermValue>
+          <div className="flex flex-wrap justify-between gap-1">
+            <TermLabel>💎 key dividends</TermLabel>
+            <TermValue>
+              <span className="hidden md:inline">22.5% per buy + 25% end</span>
+              <span className="md:hidden">22.5% + 25%</span>
+            </TermValue>
           </div>
-          <div className="flex justify-between">
-            <TermLabel>🌱 next round seed</TermLabel>
+          <div className="flex flex-wrap justify-between gap-1">
+            <TermLabel>🌱 next round</TermLabel>
             <TermValue>5%</TermValue>
           </div>
         </div>
-        <div className="text-[10px] text-[#8b7aaa] mt-3 tracking-wider text-center">
+        <div className="text-[9px] md:text-[10px] text-[#8b7aaa] mt-3 tracking-wider text-center">
           + 10% of every key purchase is burned on buy 🔥
         </div>
       </div>
@@ -1038,11 +1056,12 @@ export default function Home() {
       {/* ═══════════════════════════════════════
           FOOTER
          ═══════════════════════════════════════ */}
-      <div className="w-full text-center space-y-2 text-[10px] text-[#8b7aaa] tracking-wider font-mono">
+      <div className="w-full text-center space-y-2 text-[9px] md:text-[10px] text-[#8b7aaa] tracking-wider font-mono overflow-hidden">
         <div>$CLAWD → ${clawdPrice.toFixed(6)} USD</div>
-        <div className="flex items-center justify-center gap-2 flex-wrap">
+        <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap">
           <span>contract:</span> <Address address={FOMO3D_ADDRESS} />
-          <span>|</span>
+        </div>
+        <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap">
           <span>token:</span> <Address address={CLAWD_TOKEN} />
         </div>
       </div>
