@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Address } from "@scaffold-ui/components";
-import { formatEther } from "viem";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { Abi, formatEther } from "viem";
+import { useAccount, useChainId, useReadContracts, useSwitchChain } from "wagmi";
 import { useLobsterConfetti } from "~~/components/LobsterConfetti";
 import deployedContracts from "~~/contracts/deployedContracts";
 import externalContracts from "~~/contracts/externalContracts";
@@ -244,95 +244,85 @@ export default function Home() {
     args: [BigInt(currentRound > 1 ? currentRound - 1 : 1), address || ZERO_ADDR],
     query: { refetchInterval: POLL_MS },
   });
-  const { data: round1Result } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundResult",
-    args: [1n],
-  });
-  const { data: round2Result } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundResult",
-    args: [2n],
-  });
-  const { data: round3Result } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundResult",
-    args: [3n],
-  });
-  const { data: round4Result } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundResult",
-    args: [4n],
-  });
-  const { data: round5Result } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getRoundResult",
-    args: [5n],
-  });
-  const { data: round1Player } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getPlayer",
-    args: [1n, address || ZERO_ADDR],
-  });
-  const { data: round2Player } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getPlayer",
-    args: [2n, address || ZERO_ADDR],
-  });
-  const { data: round3Player } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getPlayer",
-    args: [3n, address || ZERO_ADDR],
-  });
-  const { data: round4Player } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getPlayer",
-    args: [4n, address || ZERO_ADDR],
-  });
-  const { data: round5Player } = useScaffoldReadContract({
-    contractName: "ClawdFomo3D",
-    functionName: "getPlayer",
-    args: [5n, address || ZERO_ADDR],
+
+  // Dynamic round history — reads all past rounds via multicall
+  const fomoAbi = deployedContracts[TARGET_CHAIN_ID].ClawdFomo3D.abi as Abi;
+  const fomoAddr = FOMO3D_ADDRESS;
+  const pastRounds = currentRound > 1 ? currentRound - 1 : 0;
+
+  const historyContracts = useMemo(() => {
+    if (pastRounds === 0) return [];
+    const calls: {
+      address: `0x${string}`;
+      abi: Abi;
+      functionName: string;
+      args: readonly [bigint] | readonly [bigint, `0x${string}`];
+    }[] = [];
+    // First: getRoundResult for each past round
+    for (let i = 1; i <= pastRounds; i++) {
+      calls.push({
+        address: fomoAddr as `0x${string}`,
+        abi: fomoAbi,
+        functionName: "getRoundResult",
+        args: [BigInt(i)],
+      });
+    }
+    // Then: getPlayer for each past round (for connected address)
+    const userAddr = (address || ZERO_ADDR) as `0x${string}`;
+    for (let i = 1; i <= pastRounds; i++) {
+      calls.push({
+        address: fomoAddr as `0x${string}`,
+        abi: fomoAbi,
+        functionName: "getPlayer",
+        args: [BigInt(i), userAddr],
+      });
+    }
+    return calls;
+  }, [pastRounds, address, fomoAbi, fomoAddr]);
+
+  const { data: historyData } = useReadContracts({
+    contracts: historyContracts,
+    query: { enabled: historyContracts.length > 0, refetchInterval: POLL_MS },
   });
 
   useEffect(() => {
-    if (!currentRound) return;
-    const results = [
-      { round: 1, result: round1Result, player: round1Player },
-      { round: 2, result: round2Result, player: round2Player },
-      { round: 3, result: round3Result, player: round3Player },
-      { round: 4, result: round4Result, player: round4Player },
-      { round: 5, result: round5Result, player: round5Player },
-    ];
-    const history = results
-      .filter(r => r.round < currentRound && r.result && r.result.winner !== ZERO_ADDR)
-      .map(r => ({
-        round: r.round,
-        winner: r.result!.winner,
-        potSize: r.result!.potSize,
-        winnerPayout: r.result!.winnerPayout,
-        burned: r.result!.burned,
-        totalKeys: r.result!.totalKeys,
-        endTime: r.result!.endTime,
-        playerKeys: r.player ? r.player[0] : 0n,
-        playerPending: r.player ? r.player[1] : 0n,
-        playerWithdrawn: r.player ? r.player[2] : 0n,
-      }))
-      .reverse();
-    setRoundHistory(history);
-  }, [
-    currentRound,
-    round1Result,
-    round2Result,
-    round3Result,
-    round4Result,
-    round5Result,
-    round1Player,
-    round2Player,
-    round3Player,
-    round4Player,
-    round5Player,
-  ]);
+    if (!currentRound || !historyData || pastRounds === 0) {
+      setRoundHistory([]);
+      return;
+    }
+    const history: typeof roundHistory = [];
+    for (let i = 0; i < pastRounds; i++) {
+      const resultEntry = historyData[i];
+      const playerEntry = historyData[pastRounds + i];
+      if (resultEntry?.status !== "success" || !resultEntry.result) continue;
+      const r = resultEntry.result as {
+        winner: string;
+        potSize: bigint;
+        winnerPayout: bigint;
+        burned: bigint;
+        totalKeys: bigint;
+        endTime: bigint;
+      };
+      if (r.winner === ZERO_ADDR) continue;
+      const p =
+        playerEntry?.status === "success" && playerEntry.result
+          ? (playerEntry.result as [bigint, bigint, bigint])
+          : ([0n, 0n, 0n] as [bigint, bigint, bigint]);
+      history.push({
+        round: i + 1,
+        winner: r.winner,
+        potSize: r.potSize,
+        winnerPayout: r.winnerPayout,
+        burned: r.burned,
+        totalKeys: r.totalKeys,
+        endTime: r.endTime,
+        playerKeys: p[0],
+        playerPending: p[1],
+        playerWithdrawn: p[2],
+      });
+    }
+    setRoundHistory(history.reverse());
+  }, [currentRound, historyData, pastRounds]);
 
   // ============ CLAWD Price ============
   useEffect(() => {
