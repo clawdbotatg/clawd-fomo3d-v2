@@ -55,16 +55,28 @@ export const AddressInfoDropdown = ({
     <>
       <details ref={dropdownRef} className="dropdown dropdown-end leading-3">
         <summary
-          className="btn btn-secondary shadow-md dropdown-toggle items-center flex flex-row flex-nowrap"
-          style={{ textTransform: "none", padding: "8px 12px", gap: "8px", height: "auto", minHeight: "44px" }}
+          className="shadow-md"
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: "10px",
+            padding: "8px 14px",
+            cursor: "pointer",
+            borderRadius: "12px",
+            border: "1px solid rgba(249, 115, 22, 0.3)",
+            background: "rgba(249, 115, 22, 0.08)",
+            textTransform: "none",
+            listStyle: "none",
+          }}
         >
-          <div className="shrink-0" style={{ width: 28, height: 28 }}>
-            <BlockieAvatar address={checkSumAddress} size={28} ensImage={ensAvatar} />
+          <div style={{ width: 30, height: 30, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
+            <BlockieAvatar address={checkSumAddress} size={30} ensImage={ensAvatar} />
           </div>
-          <span className="whitespace-nowrap text-sm">
+          <span style={{ whiteSpace: "nowrap", fontSize: "14px", color: "#e2e8f0" }}>
             {isENS(displayName) ? displayName : checkSumAddress?.slice(0, 6) + "..." + checkSumAddress?.slice(-4)}
           </span>
-          <ChevronDownIcon className="shrink-0" style={{ width: 16, height: 16 }} />
+          <ChevronDownIcon style={{ width: 16, height: 16, flexShrink: 0, color: "#e2e8f0" }} />
         </summary>
         <ul className="dropdown-content menu z-2 p-2 mt-2 shadow-center shadow-accent bg-base-200 rounded-box gap-1">
           <NetworkOptions hidden={!selectingNetwork} />
