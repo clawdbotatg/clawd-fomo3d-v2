@@ -3,6 +3,7 @@ import {
   baseAccount,
   ledgerWallet,
   metaMaskWallet,
+  phantomWallet,
   rainbowWallet,
   safeWallet,
   walletConnectWallet,
@@ -18,6 +19,7 @@ const wallets = [
   walletConnectWallet,
   ledgerWallet,
   baseAccount,
+  phantomWallet,
   rainbowWallet,
   safeWallet,
   ...(!targetNetworks.some(network => network.id !== (chains.hardhat as chains.Chain).id) || !onlyLocalBurnerWallet
