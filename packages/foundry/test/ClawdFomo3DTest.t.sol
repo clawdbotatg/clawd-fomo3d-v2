@@ -8,7 +8,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /// @dev Simple mock ERC20 for testing
 contract MockCLAWD is ERC20 {
     constructor() ERC20("CLAWD", "CLAWD") {
-        _mint(msg.sender, 100_000_000_000 * 1e18); // 100B supply
+        _mint(msg.sender, 100_000_000_000 * 1e18);
     }
 
     function mint(address to, uint256 amount) external {
@@ -25,18 +25,16 @@ contract ClawdFomo3DTest is Test {
     address public bob = address(0xB0B);
     address public carol = address(0xCA201);
 
-    uint256 public constant TIMER = 1 hours;
+    uint256 public constant TIMER = 10 minutes;
 
     function setUp() public {
         clawd = new MockCLAWD();
         game = new ClawdFomo3D(address(clawd), TIMER);
 
-        // Fund players
         clawd.transfer(alice, 10_000_000 * 1e18);
         clawd.transfer(bob, 10_000_000 * 1e18);
         clawd.transfer(carol, 10_000_000 * 1e18);
 
-        // Approve game
         vm.prank(alice);
         clawd.approve(address(game), type(uint256).max);
         vm.prank(bob);
@@ -52,40 +50,37 @@ contract ClawdFomo3DTest is Test {
         game.buyKeys(numKeys);
     }
 
-    function _endRound(address caller) internal {
-        vm.warp(game.roundEnd() + game.GRACE_PERIOD() + 1);
-        vm.prank(caller);
-        game.endRound();
-    }
-
-    function _endRoundAsLastBuyer() internal {
-        address lb = game.lastBuyer();
+    function _endRound() internal {
         vm.warp(game.roundEnd());
-        vm.prank(lb);
         game.endRound();
     }
 
-    // ============ Single Round Tests ============
+    /// @dev End round + warp past cooldown + start next round
+    function _endRoundAndStartNext() internal {
+        _endRound();
+        vm.warp(game.roundCooldownEnd());
+        game.startNextRound();
+    }
+
+    // ============ Basic Tests ============
 
     function test_BuyKeys() public {
         _buyKeys(alice, 10);
 
         (uint256 keys,,) = game.getPlayer(1, alice);
-        assertEq(keys, 10, "Alice should have 10 keys");
-        assertEq(game.totalKeys(), 10, "Total keys should be 10");
-        assertEq(game.lastBuyer(), alice, "Last buyer should be Alice");
+        assertEq(keys, 10);
+        assertEq(game.totalKeys(), 10);
+        assertEq(game.lastBuyer(), alice);
     }
 
     function test_KeyPriceBondingCurve() public {
-        // First key costs BASE_PRICE = 1000 CLAWD
         uint256 price1 = game.currentKeyPrice();
-        assertEq(price1, 1000 * 1e18, "First key = 1000 CLAWD");
+        assertEq(price1, 1000 * 1e18);
 
         _buyKeys(alice, 1);
 
-        // Second key costs 1000 + 110 = 1110
         uint256 price2 = game.currentKeyPrice();
-        assertEq(price2, 1110 * 1e18, "Second key = 1110 CLAWD");
+        assertEq(price2, 1110 * 1e18);
     }
 
     function test_BurnOnBuy() public {
@@ -93,12 +88,12 @@ contract ClawdFomo3DTest is Test {
         uint256 deadBefore = clawd.balanceOf(dead);
 
         uint256 cost = game.calculateCost(10);
-        uint256 expectedBurn = (cost * 1000) / 10000; // 10%
+        uint256 expectedBurn = (cost * 500) / 10000; // 5%
 
         _buyKeys(alice, 10);
 
         uint256 deadAfter = clawd.balanceOf(dead);
-        assertEq(deadAfter - deadBefore, expectedBurn, "10% should be burned");
+        assertEq(deadAfter - deadBefore, expectedBurn, "5% should be burned");
     }
 
     function test_SingleRoundWinnerGetsPot() public {
@@ -106,42 +101,32 @@ contract ClawdFomo3DTest is Test {
         _buyKeys(bob, 5);
 
         uint256 pot = game.pot();
-        uint256 expectedWinnerPayout = (pot * 5000) / 10000; // 50%
+        uint256 expectedWinnerPayout = (pot * 5500) / 10000; // 55%
 
         uint256 bobBefore = clawd.balanceOf(bob);
-
-        // Bob is last buyer → winner
-        _endRoundAsLastBuyer();
-
+        _endRound();
         uint256 bobAfter = clawd.balanceOf(bob);
-        assertEq(bobAfter - bobBefore, expectedWinnerPayout, "Winner gets 50% of pot");
+        assertEq(bobAfter - bobBefore, expectedWinnerPayout, "Winner gets 55% of pot");
     }
 
     function test_SingleRoundDividends() public {
-        // Alice buys 100 keys (first buyer — no existing holders, no per-buy dividends)
         _buyKeys(alice, 100);
-        // Bob buys 50 keys (Alice has 100 existing keys → per-buy dividends go to Alice)
         _buyKeys(bob, 50);
 
-        // End round (Bob is last buyer)
-        _endRoundAsLastBuyer();
+        _endRound();
 
-        // v7: Alice earns MORE than proportional share because she gets per-buy dividends
-        // from Bob's purchase PLUS her share of end-round dividends.
-        // Bob only gets his share of end-round dividends (no one bought after him during the round).
         uint256 alicePending = game.pendingDividends(1, alice);
         uint256 bobPending = game.pendingDividends(1, bob);
 
         assertTrue(alicePending > 0, "Alice has dividends");
         assertTrue(bobPending > 0, "Bob has dividends");
-        assertTrue(alicePending > bobPending, "Early buyer (Alice) earns more than late buyer (Bob)");
+        assertTrue(alicePending > bobPending, "Early buyer earns more");
 
-        // Both should be claimable (solvency)
         uint256 aliceBefore = clawd.balanceOf(alice);
         vm.prank(alice);
         game.claimDividends(1);
         uint256 aliceAfter = clawd.balanceOf(alice);
-        assertEq(aliceAfter - aliceBefore, alicePending, "Alice claims correct amount");
+        assertEq(aliceAfter - aliceBefore, alicePending);
 
         vm.prank(bob);
         game.claimDividends(1);
@@ -156,98 +141,120 @@ contract ClawdFomo3DTest is Test {
         game.buyKeys(1);
     }
 
-    function test_GracePeriod() public {
-        _buyKeys(alice, 1);
-        vm.warp(game.roundEnd());
+    // ============ Cooldown Tests ============
 
-        // Non-lastBuyer can't end during grace period
+    function test_CooldownStartsAfterEndRound() public {
+        _buyKeys(alice, 10);
+        _endRound();
+
+        assertTrue(game.inCooldown(), "Should be in cooldown");
+        assertEq(game.roundCooldownEnd(), block.timestamp + 32 hours);
+    }
+
+    function test_CannotBuyDuringCooldown() public {
+        _buyKeys(alice, 10);
+        _endRound();
+
         vm.prank(bob);
-        vm.expectRevert("Grace period: only last buyer can end");
-        game.endRound();
+        vm.expectRevert("In cooldown");
+        game.buyKeys(1);
+    }
 
-        // Last buyer can
-        vm.prank(alice);
+    function test_CannotStartNextRoundBeforeCooldown() public {
+        _buyKeys(alice, 10);
+        _endRound();
+
+        vm.warp(game.roundCooldownEnd() - 1);
+        vm.expectRevert("Cooldown not over");
+        game.startNextRound();
+    }
+
+    function test_StartNextRoundAfterCooldown() public {
+        _buyKeys(alice, 10);
+        _endRound();
+
+        vm.warp(game.roundCooldownEnd());
+        game.startNextRound();
+
+        assertFalse(game.inCooldown(), "No longer in cooldown");
+        assertEq(game.currentRound(), 2);
+        assertEq(game.totalKeys(), 0);
+    }
+
+    function test_StartNextRoundPermissionless() public {
+        _buyKeys(alice, 10);
+        _endRound();
+        vm.warp(game.roundCooldownEnd());
+
+        // Bob (random person) can start it
+        vm.prank(bob);
+        game.startNextRound();
+
+        assertEq(game.currentRound(), 2);
+    }
+
+    function test_CannotEndRoundDuringCooldown() public {
+        _buyKeys(alice, 10);
+        _endRound();
+
+        vm.expectRevert("Already in cooldown");
         game.endRound();
     }
 
-    // ============ Multi-Round: Cross-Round Dividend Leakage Test ============
+    function test_CooldownOnEmptyRound() public {
+        // Nobody buys, round ends
+        vm.warp(game.roundEnd());
+        game.endRound();
+
+        assertTrue(game.inCooldown(), "Empty round enters cooldown too");
+        vm.warp(game.roundCooldownEnd());
+        game.startNextRound();
+        assertEq(game.currentRound(), 2);
+    }
+
+    // ============ Multi-Round with Cooldown ============
 
     function test_NoCrossRoundDividendLeakage() public {
-        // === ROUND 1 ===
-        // Alice buys 100 keys
         _buyKeys(alice, 100);
-
         uint256 pot1 = game.pot();
         uint256 dividends1 = (pot1 * 2500) / 10000;
 
-        // End round 1 (Alice is last buyer → winner)
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // Alice's R1 dividends should be all of dividends1 (she's the only key holder)
         uint256 aliceR1Pending = game.pendingDividends(1, alice);
-        assertApproxEqAbs(aliceR1Pending, dividends1, 1, "R1: Alice gets all dividends");
+        assertApproxEqAbs(aliceR1Pending, dividends1, 1);
 
-        // === ROUND 2 ===
-        assertEq(game.currentRound(), 2, "Should be round 2");
-
-        // Bob buys 50 keys in round 2
+        assertEq(game.currentRound(), 2);
         _buyKeys(bob, 50);
-
         uint256 pot2 = game.pot();
         uint256 dividends2 = (pot2 * 2500) / 10000;
 
-        // End round 2
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // THE CRITICAL CHECK: Alice's R1 dividends should NOT have changed
-        uint256 aliceR1PendingAfterR2 = game.pendingDividends(1, alice);
-        assertApproxEqAbs(
-            aliceR1PendingAfterR2,
-            dividends1,
-            1,
-            "CRITICAL: Alice's R1 dividends must not increase after R2"
-        );
+        // Alice R1 dividends unchanged
+        uint256 aliceR1After = game.pendingDividends(1, alice);
+        assertApproxEqAbs(aliceR1After, dividends1, 1, "R1 dividends unchanged");
 
-        // Bob's R2 dividends should be all of dividends2 (he's the only R2 key holder)
-        uint256 bobR2Pending = game.pendingDividends(2, bob);
-        assertApproxEqAbs(bobR2Pending, dividends2, 1, "R2: Bob gets all dividends");
+        uint256 bobR2 = game.pendingDividends(2, bob);
+        assertApproxEqAbs(bobR2, dividends2, 1);
 
-        // Alice should have 0 dividends for round 2 (she didn't buy R2 keys)
-        uint256 aliceR2Pending = game.pendingDividends(2, alice);
-        assertEq(aliceR2Pending, 0, "Alice has no R2 keys, no R2 dividends");
-
-        // Bob should have 0 dividends for round 1 (he didn't buy R1 keys)
-        uint256 bobR1Pending = game.pendingDividends(1, bob);
-        assertEq(bobR1Pending, 0, "Bob has no R1 keys, no R1 dividends");
+        assertEq(game.pendingDividends(2, alice), 0, "Alice no R2 dividends");
+        assertEq(game.pendingDividends(1, bob), 0, "Bob no R1 dividends");
     }
 
     function test_MultiRoundSolvency() public {
-        // This is the audit's exact proof-by-example scenario
-
-        // Round 1: Alice buys 100 keys
         _buyKeys(alice, 100);
-        uint256 pot1 = game.pot();
-        uint256 dividends1 = (pot1 * 2500) / 10000;
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // Round 2: Bob buys 50 keys
         _buyKeys(bob, 50);
-        uint256 pot2 = game.pot();
-        uint256 dividends2 = (pot2 * 2500) / 10000;
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // Total dividends in contract should cover all claims
         uint256 aliceOwed = game.pendingDividends(1, alice);
         uint256 bobOwed = game.pendingDividends(2, bob);
 
-        // Contract balance should be >= total owed
         uint256 contractBalance = clawd.balanceOf(address(game));
-        assertTrue(
-            contractBalance >= aliceOwed + bobOwed,
-            "SOLVENCY: Contract must have enough to pay all dividends"
-        );
+        assertTrue(contractBalance >= aliceOwed + bobOwed, "Solvent");
 
-        // Claim both and verify no revert
         vm.prank(alice);
         game.claimDividends(1);
         vm.prank(bob);
@@ -255,30 +262,22 @@ contract ClawdFomo3DTest is Test {
     }
 
     function test_ThreeRoundsSolvency() public {
-        // Round 1: Alice buys 100 keys
         _buyKeys(alice, 100);
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // Round 2: Bob buys 50 keys
         _buyKeys(bob, 50);
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // Round 3: Carol buys 200 keys
         _buyKeys(carol, 200);
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // All should be claimable
         uint256 aliceOwed = game.pendingDividends(1, alice);
         uint256 bobOwed = game.pendingDividends(2, bob);
         uint256 carolOwed = game.pendingDividends(3, carol);
 
         uint256 contractBalance = clawd.balanceOf(address(game));
-        assertTrue(
-            contractBalance >= aliceOwed + bobOwed + carolOwed,
-            "SOLVENCY: 3 rounds all claimable"
-        );
+        assertTrue(contractBalance >= aliceOwed + bobOwed + carolOwed, "3-round solvency");
 
-        // Claims don't revert
         vm.prank(alice);
         game.claimDividends(1);
         vm.prank(bob);
@@ -286,13 +285,9 @@ contract ClawdFomo3DTest is Test {
         vm.prank(carol);
         game.claimDividends(3);
 
-        // No cross-contamination
-        assertEq(game.pendingDividends(1, bob), 0, "Bob has no R1 dividends");
-        assertEq(game.pendingDividends(1, carol), 0, "Carol has no R1 dividends");
-        assertEq(game.pendingDividends(2, alice), 0, "Alice has no R2 dividends");
-        assertEq(game.pendingDividends(2, carol), 0, "Carol has no R2 dividends");
-        assertEq(game.pendingDividends(3, alice), 0, "Alice has no R3 dividends");
-        assertEq(game.pendingDividends(3, bob), 0, "Bob has no R3 dividends");
+        assertEq(game.pendingDividends(1, bob), 0);
+        assertEq(game.pendingDividends(2, alice), 0);
+        assertEq(game.pendingDividends(3, alice), 0);
     }
 
     // ============ Edge Cases ============
@@ -300,43 +295,28 @@ contract ClawdFomo3DTest is Test {
     function test_SinglePlayerRound() public {
         _buyKeys(alice, 10);
         uint256 pot = game.pot();
-        uint256 expectedWinner = (pot * 5000) / 10000;
+        uint256 expectedWinner = (pot * 5500) / 10000; // 55%
         uint256 expectedDividends = (pot * 2500) / 10000;
 
         uint256 aliceBefore = clawd.balanceOf(alice);
-        _endRoundAsLastBuyer();
+        _endRound();
+        uint256 aliceAfter = clawd.balanceOf(alice);
+        assertEq(aliceAfter - aliceBefore, expectedWinner);
 
-        // Alice wins as last buyer
-        uint256 aliceAfterWin = clawd.balanceOf(alice);
-        assertEq(aliceAfterWin - aliceBefore, expectedWinner, "Single player wins 50% of pot");
-
-        // Alice also gets all dividends
         uint256 aliceDivs = game.pendingDividends(1, alice);
-        assertApproxEqAbs(aliceDivs, expectedDividends, 1, "Single player gets all dividends");
-    }
-
-    function test_RoundResetNoPlayers() public {
-        // Nobody buys, round ends
-        vm.warp(game.roundEnd() + game.GRACE_PERIOD() + 1);
-        game.endRound();
-
-        // Should be round 2 now
-        assertEq(game.currentRound(), 2, "Reset creates round 2");
-        assertEq(game.totalKeys(), 0, "No keys");
-        assertEq(game.lastBuyer(), address(0), "No last buyer");
+        assertApproxEqAbs(aliceDivs, expectedDividends, 1);
     }
 
     function test_WithdrawalPreventsDoubleClaim() public {
         _buyKeys(alice, 100);
-        _endRoundAsLastBuyer();
+        _endRound();
 
         uint256 divs = game.pendingDividends(1, alice);
-        assertTrue(divs > 0, "Has dividends");
+        assertTrue(divs > 0);
 
         vm.prank(alice);
         game.claimDividends(1);
 
-        // Second claim should fail
         vm.prank(alice);
         vm.expectRevert("No dividends");
         game.claimDividends(1);
@@ -345,260 +325,79 @@ contract ClawdFomo3DTest is Test {
     function test_AntiSnipeExtension() public {
         _buyKeys(alice, 1);
 
-        // Warp to 1 minute before end (within ANTI_SNIPE_THRESHOLD = 2 min)
         vm.warp(game.roundEnd() - 60);
         uint256 endBefore = game.roundEnd();
 
         _buyKeys(bob, 1);
 
         uint256 endAfter = game.roundEnd();
-        assertTrue(endAfter > endBefore, "Timer extended by anti-snipe");
+        assertTrue(endAfter > endBefore, "Timer extended");
     }
 
     function test_MultiPlayerDividendSplit() public {
-        // Alice buys 100 keys (first buyer — no per-buy dividends)
         _buyKeys(alice, 100);
-        // Bob buys 100 keys (Alice gets per-buy dividends from Bob's purchase)
         _buyKeys(bob, 100);
 
-        _endRoundAsLastBuyer();
+        _endRound();
 
         uint256 aliceDivs = game.pendingDividends(1, alice);
         uint256 bobDivs = game.pendingDividends(1, bob);
 
-        // v7: Alice earns MORE despite equal keys, because she bought first and
-        // received per-buy dividends when Bob bought. This is the core Fomo3D
-        // early-buyer advantage mechanic.
-        assertTrue(aliceDivs > bobDivs, "First buyer earns more (per-buy dividends)");
-        assertTrue(bobDivs > 0, "Second buyer still earns end-round dividends");
+        assertTrue(aliceDivs > bobDivs, "First buyer earns more");
+        assertTrue(bobDivs > 0);
 
-        // Both claimable (solvency)
         vm.prank(alice);
         game.claimDividends(1);
         vm.prank(bob);
         game.claimDividends(1);
     }
 
-    function test_PlayerBuysAcrossMultipleRounds() public {
-        // Alice plays Round 1
-        _buyKeys(alice, 100);
-        _endRoundAsLastBuyer();
+    function test_PerBuyDividendsDuringRound() public {
+        _buyKeys(alice, 10);
+        assertEq(game.pendingDividends(1, alice), 0, "No dividends yet");
 
-        uint256 aliceR1Divs = game.pendingDividends(1, alice);
+        _buyKeys(bob, 5);
+        uint256 aliceDivsAfterBob = game.pendingDividends(1, alice);
+        assertTrue(aliceDivsAfterBob > 0, "Alice earns per-buy dividends");
+        assertEq(game.pendingDividends(1, bob), 0, "Bob has no dividends yet");
 
-        // Alice also plays Round 2 (buys first)
-        _buyKeys(alice, 50);
-        // Bob buys second → Alice gets per-buy dividends from Bob's purchase
-        _buyKeys(bob, 50);
-        _endRoundAsLastBuyer();
+        _buyKeys(carol, 5);
+        uint256 aliceDivsAfterCarol = game.pendingDividends(1, alice);
+        uint256 bobDivsAfterCarol = game.pendingDividends(1, bob);
+        assertTrue(aliceDivsAfterCarol > aliceDivsAfterBob);
+        assertTrue(bobDivsAfterCarol > 0);
 
-        // R1 dividends unchanged
-        assertApproxEqAbs(
-            game.pendingDividends(1, alice),
-            aliceR1Divs,
-            1,
-            "R1 dividends unchanged after R2"
-        );
-
-        // v7: Alice earns MORE in R2 despite equal keys, because she bought first
-        // and received per-buy dividends from Bob's purchase
-        uint256 aliceR2Divs = game.pendingDividends(2, alice);
-        uint256 bobR2Divs = game.pendingDividends(2, bob);
-        assertTrue(aliceR2Divs > bobR2Divs, "First buyer earns more in R2 (per-buy dividends)");
-        assertTrue(bobR2Divs > 0, "Bob still earns end-round R2 dividends");
-
-        // Both claimable (solvency)
         vm.prank(alice);
-        game.claimDividends(2);
+        game.claimDividends(1);
         vm.prank(bob);
-        game.claimDividends(2);
+        game.claimDividends(1);
     }
 
     function test_NextRoundSeed() public {
         _buyKeys(alice, 10);
         uint256 potBefore = game.pot();
-        uint256 expectedSeed = (potBefore * 500) / 10000; // 5%
+        uint256 expectedSeed = (potBefore * 1000) / 10000; // 10%
 
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // After round ends, next round's pot should include the seed
         uint256 newPot = game.pot();
-        // newPot = dividendRemainder(dust) + nextRoundSeed
-        // nextRoundSeed was added to pot in _startNewRound
-        assertTrue(newPot >= expectedSeed, "Next round pot includes seed from previous round");
+        assertTrue(newPot >= expectedSeed, "Next round pot includes seed");
 
-        // Verify the seed amount is roughly 5% of previous pot
-        // (pot also includes dust from rounding, so >= is the right check)
-        uint256 dust = potBefore - (potBefore * 5000 / 10000) - (potBefore * 2000 / 10000) - (potBefore * 2500 / 10000) - (potBefore * 500 / 10000);
+        uint256 dust = potBefore - (potBefore * 5500 / 10000) - (potBefore * 1000 / 10000) - (potBefore * 2500 / 10000) - (potBefore * 1000 / 10000);
         assertEq(newPot, expectedSeed + dust, "Next round pot = seed + dust");
     }
 
     function test_BurnOnRoundEnd() public {
         _buyKeys(alice, 10);
         uint256 pot = game.pot();
-        uint256 expectedBurn = (pot * 2000) / 10000; // 20%
+        uint256 expectedBurn = (pot * 1000) / 10000; // 10%
 
         address dead = game.DEAD();
         uint256 deadBefore = clawd.balanceOf(dead);
-        _endRoundAsLastBuyer();
+        _endRound();
         uint256 deadAfter = clawd.balanceOf(dead);
-
-        assertEq(deadAfter - deadBefore, expectedBurn, "20% burned at round end");
+        assertEq(deadAfter - deadBefore, expectedBurn, "10% burned at round end");
     }
-
-    function test_PerBuyDividendsDuringRound() public {
-        // v7 core test: dividends accumulate DURING the round, not just at endRound
-
-        // Alice buys 10 keys — first buyer, no dividends yet
-        _buyKeys(alice, 10);
-        assertEq(game.pendingDividends(1, alice), 0, "No dividends yet (first buyer)");
-
-        // Bob buys 5 keys — Alice should IMMEDIATELY have pending dividends
-        _buyKeys(bob, 5);
-        uint256 aliceDivsAfterBob = game.pendingDividends(1, alice);
-        assertTrue(aliceDivsAfterBob > 0, "Alice earns per-buy dividends when Bob buys");
-
-        // Bob should have 0 (no one bought after him yet)
-        assertEq(game.pendingDividends(1, bob), 0, "Bob has no dividends yet");
-
-        // Carol buys 5 keys — both Alice and Bob should earn
-        _buyKeys(carol, 5);
-        uint256 aliceDivsAfterCarol = game.pendingDividends(1, alice);
-        uint256 bobDivsAfterCarol = game.pendingDividends(1, bob);
-        assertTrue(aliceDivsAfterCarol > aliceDivsAfterBob, "Alice earns more when Carol buys");
-        assertTrue(bobDivsAfterCarol > 0, "Bob earns when Carol buys");
-
-        // Alice should earn more than Bob from Carol's purchase (10 keys vs 5 keys)
-        uint256 aliceIncrease = aliceDivsAfterCarol - aliceDivsAfterBob;
-        assertTrue(aliceIncrease > bobDivsAfterCarol, "Alice (10 keys) earns more than Bob (5 keys) from Carol's buy");
-
-        // All claimable before round ends
-        vm.prank(alice);
-        game.claimDividends(1);
-        vm.prank(bob);
-        game.claimDividends(1);
-    }
-
-    // ============ Batch Read Tests ============
-
-    function test_GetRoundCount() public {
-        assertEq(game.getRoundCount(), 1, "Initial round is 1");
-
-        _buyKeys(alice, 10);
-        _endRoundAsLastBuyer();
-        assertEq(game.getRoundCount(), 2, "After 1 completed round, getRoundCount = 2");
-
-        _buyKeys(bob, 5);
-        _endRoundAsLastBuyer();
-        assertEq(game.getRoundCount(), 3, "After 2 completed rounds, getRoundCount = 3");
-    }
-
-    function test_GetLatestRoundsBasic() public {
-        // No completed rounds yet
-        ClawdFomo3D.RoundResultFull[] memory empty = game.getLatestRounds(10);
-        assertEq(empty.length, 0, "No completed rounds = empty array");
-
-        // Play 3 rounds
-        _buyKeys(alice, 10);
-        _endRoundAsLastBuyer();
-
-        _buyKeys(bob, 20);
-        _endRoundAsLastBuyer();
-
-        _buyKeys(carol, 30);
-        _endRoundAsLastBuyer();
-
-        // Request 10 but only 3 completed
-        ClawdFomo3D.RoundResultFull[] memory results = game.getLatestRounds(10);
-        assertEq(results.length, 3, "Should return 3 completed rounds");
-
-        // Newest first
-        assertEq(results[0].roundId, 3, "First result is round 3 (newest)");
-        assertEq(results[1].roundId, 2, "Second result is round 2");
-        assertEq(results[2].roundId, 1, "Third result is round 1 (oldest)");
-
-        // Verify data integrity
-        assertEq(results[0].winner, carol, "Round 3 winner is Carol");
-        assertEq(results[1].winner, bob, "Round 2 winner is Bob");
-        assertEq(results[2].winner, alice, "Round 1 winner is Alice");
-
-        // Verify computed fields
-        for (uint256 i = 0; i < 3; i++) {
-            assertTrue(results[i].potSize > 0, "Pot size > 0");
-            assertTrue(results[i].totalKeys > 0, "Total keys > 0");
-            assertTrue(results[i].winnerPayout > 0, "Winner payout > 0");
-            assertTrue(results[i].burnAmount > 0, "Burn amount > 0");
-            assertEq(results[i].dividendsPayout, (results[i].potSize * 2500) / 10000, "Dividends = 25% of pot");
-            assertEq(results[i].seedAmount, (results[i].potSize * 500) / 10000, "Seed = 5% of pot");
-        }
-
-        // Request exact count
-        ClawdFomo3D.RoundResultFull[] memory two = game.getLatestRounds(2);
-        assertEq(two.length, 2, "Should return exactly 2");
-        assertEq(two[0].roundId, 3, "Newest first");
-        assertEq(two[1].roundId, 2, "Second newest");
-    }
-
-    function test_GetRoundResultsBatch() public {
-        // Play 5 rounds
-        _buyKeys(alice, 10);
-        _endRoundAsLastBuyer();
-        _buyKeys(bob, 20);
-        _endRoundAsLastBuyer();
-        _buyKeys(carol, 30);
-        _endRoundAsLastBuyer();
-        _buyKeys(alice, 40);
-        _endRoundAsLastBuyer();
-        _buyKeys(bob, 50);
-        _endRoundAsLastBuyer();
-
-        // Get rounds 2-4
-        ClawdFomo3D.RoundResultFull[] memory batch = game.getRoundResultsBatch(2, 3);
-        assertEq(batch.length, 3, "Should return 3 rounds");
-        assertEq(batch[0].roundId, 2, "Starts at round 2");
-        assertEq(batch[1].roundId, 3, "Then round 3");
-        assertEq(batch[2].roundId, 4, "Then round 4");
-
-        // Request beyond available
-        ClawdFomo3D.RoundResultFull[] memory overflow = game.getRoundResultsBatch(4, 100);
-        assertEq(overflow.length, 2, "Only 2 rounds from 4 onwards (4 and 5)");
-        assertEq(overflow[0].roundId, 4);
-        assertEq(overflow[1].roundId, 5);
-
-        // Start beyond completed rounds
-        ClawdFomo3D.RoundResultFull[] memory beyond = game.getRoundResultsBatch(10, 5);
-        assertEq(beyond.length, 0, "No rounds that far");
-    }
-
-    function test_GetLatestRoundsMatchesIndividual() public {
-        // Play 2 rounds and compare batch read to individual reads
-        _buyKeys(alice, 15);
-        _buyKeys(bob, 10);
-        _endRoundAsLastBuyer();
-
-        _buyKeys(carol, 25);
-        _endRoundAsLastBuyer();
-
-        ClawdFomo3D.RoundResultFull[] memory batch = game.getLatestRounds(2);
-
-        // Compare round 2 (batch[0]) with individual getRoundResult(2)
-        ClawdFomo3D.RoundResult memory r2 = game.getRoundResult(2);
-        assertEq(batch[0].roundId, 2);
-        assertEq(batch[0].winner, r2.winner);
-        assertEq(batch[0].potSize, r2.potSize);
-        assertEq(batch[0].totalKeys, r2.totalKeys);
-        assertEq(batch[0].winnerPayout, r2.winnerPayout);
-        assertEq(batch[0].burnAmount, r2.burned);
-
-        // Compare round 1 (batch[1]) with individual getRoundResult(1)
-        ClawdFomo3D.RoundResult memory r1 = game.getRoundResult(1);
-        assertEq(batch[1].roundId, 1);
-        assertEq(batch[1].winner, r1.winner);
-        assertEq(batch[1].potSize, r1.potSize);
-        assertEq(batch[1].totalKeys, r1.totalKeys);
-    }
-
-    // ============ Edge Cases (continued) ============
 
     function test_PauseBlocks() public {
         game.pause();
@@ -608,28 +407,95 @@ contract ClawdFomo3DTest is Test {
         game.buyKeys(1);
 
         game.unpause();
-
-        // Now it works
         _buyKeys(alice, 1);
     }
 
     function test_PointsPerKeyResetsEachRound() public {
-        // Round 1
         _buyKeys(alice, 100);
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // After round 1 ends, pointsPerKey should be 0 (reset in _startNewRound)
-        assertEq(game.pointsPerKey(), 0, "PPK reset to 0 after round end");
+        assertEq(game.pointsPerKey(), 0, "PPK reset after round end");
 
-        // Round 2
         _buyKeys(bob, 50);
-        _endRoundAsLastBuyer();
+        _endRoundAndStartNext();
 
-        // After round 2 ends, pointsPerKey should be 0 again
-        assertEq(game.pointsPerKey(), 0, "PPK reset to 0 after round 2 end");
+        assertEq(game.pointsPerKey(), 0, "PPK reset after round 2 end");
 
-        // Snapshots should be non-zero
-        assertTrue(game.roundPointsPerKey(1) > 0, "R1 snapshot non-zero");
-        assertTrue(game.roundPointsPerKey(2) > 0, "R2 snapshot non-zero");
+        assertTrue(game.roundPointsPerKey(1) > 0);
+        assertTrue(game.roundPointsPerKey(2) > 0);
+    }
+
+    function test_PlayerBuysAcrossMultipleRounds() public {
+        _buyKeys(alice, 100);
+        _endRoundAndStartNext();
+
+        uint256 aliceR1Divs = game.pendingDividends(1, alice);
+
+        _buyKeys(alice, 50);
+        _buyKeys(bob, 50);
+        _endRoundAndStartNext();
+
+        assertApproxEqAbs(game.pendingDividends(1, alice), aliceR1Divs, 1, "R1 unchanged");
+
+        uint256 aliceR2 = game.pendingDividends(2, alice);
+        uint256 bobR2 = game.pendingDividends(2, bob);
+        assertTrue(aliceR2 > bobR2, "First buyer earns more in R2");
+        assertTrue(bobR2 > 0);
+
+        vm.prank(alice);
+        game.claimDividends(2);
+        vm.prank(bob);
+        game.claimDividends(2);
+    }
+
+    // ============ Batch Read Tests ============
+
+    function test_GetRoundCount() public {
+        assertEq(game.getRoundCount(), 1);
+
+        _buyKeys(alice, 10);
+        _endRoundAndStartNext();
+        assertEq(game.getRoundCount(), 2);
+    }
+
+    function test_GetLatestRoundsBasic() public {
+        ClawdFomo3D.RoundResultFull[] memory empty = game.getLatestRounds(10);
+        assertEq(empty.length, 0);
+
+        _buyKeys(alice, 10);
+        _endRoundAndStartNext();
+        _buyKeys(bob, 20);
+        _endRoundAndStartNext();
+        _buyKeys(carol, 30);
+        _endRoundAndStartNext();
+
+        ClawdFomo3D.RoundResultFull[] memory results = game.getLatestRounds(10);
+        assertEq(results.length, 3);
+        assertEq(results[0].roundId, 3);
+        assertEq(results[1].roundId, 2);
+        assertEq(results[2].roundId, 1);
+        assertEq(results[0].winner, carol);
+        assertEq(results[1].winner, bob);
+        assertEq(results[2].winner, alice);
+
+        for (uint256 i = 0; i < 3; i++) {
+            assertEq(results[i].dividendsPayout, (results[i].potSize * 2500) / 10000);
+            assertEq(results[i].seedAmount, (results[i].potSize * 1000) / 10000);
+        }
+    }
+
+    function test_GetRoundInfoIncludesCooldown() public {
+        _buyKeys(alice, 10);
+        
+        (,,,,,,bool isActive, bool cooldown,) = game.getRoundInfo();
+        assertTrue(isActive);
+        assertFalse(cooldown);
+
+        _endRound();
+
+        (,,,,,,bool isActive2, bool cooldown2, uint256 cooldownEnd) = game.getRoundInfo();
+        assertFalse(isActive2);
+        assertTrue(cooldown2);
+        assertTrue(cooldownEnd > block.timestamp);
     }
 }

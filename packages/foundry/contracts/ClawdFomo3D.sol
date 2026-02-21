@@ -8,32 +8,32 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
- * @title ClawdFomo3D v9
- * @notice Safer FOMO3D king-of-the-hill game with $CLAWD tokens.
+ * @title ClawdFomo3D v10
+ * @notice FOMO3D king-of-the-hill game with $CLAWD tokens on Base.
  *         Last buyer wins when countdown timer expires.
- *         Rounds have no hard cap — they run indefinitely as long as keys are bought.
+ *         32-hour cooldown between rounds. Halved burn rates.
  *
- * Safety fixes implemented:
- *   #2  - Emergency pause (Pausable) + TimerExtended event
- *   #6  - Overflow protection (MAX_KEYS_PER_BUY)
- *   #7  - Constructor validation (non-zero addresses/timer)
- *   #8  - Dividend dust tracking (remainder carried forward)
- *   #11 - Round deadlock fix (endRound resets if no buys)
- *   #12 - Per-buy dividend distribution (v7 fix — core Fomo3D mechanic)
+ * v10 changes:
+ *   - Buy burn: 10% → 5%
+ *   - End burn: 20% → 10%
+ *   - Winner: 50% → 55%
+ *   - Next round seed: 5% → 10%
+ *   - 32-hour cooldown between rounds
+ *   - Active timer: 10 minutes (deploy)
  *
- * v7 dividend flow:
- *   On each buy: 10% burned, 25% of after-burn to existing key holders, 75% of after-burn to pot.
- *   On round end: pot split 50% winner / 20% burn / 25% dividends (bonus) / 5% next round seed.
+ * Dividend flow:
+ *   On each buy: 5% burned, 25% of after-burn to existing key holders, 75% of after-burn to pot.
+ *   On round end: pot split 55% winner / 10% burn / 25% dividends / 10% next round seed.
  */
 contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
     // ============ Constants ============
-    uint256 public constant BURN_ON_BUY_BPS = 1000;       // 10% burned on every buy
-    uint256 public constant WINNER_BPS = 5000;             // 50% of pot to winner
-    uint256 public constant BURN_ON_END_BPS = 2000;        // 20% of pot burned at round end
+    uint256 public constant BURN_ON_BUY_BPS = 500;         // 5% burned on every buy
+    uint256 public constant WINNER_BPS = 5500;             // 55% of pot to winner
+    uint256 public constant BURN_ON_END_BPS = 1000;        // 10% of pot burned at round end
     uint256 public constant DIVIDENDS_BPS = 2500;          // 25% to key holders
-    uint256 public constant NEXT_ROUND_SEED_BPS = 500;    // 5% seeds next round's pot
+    uint256 public constant NEXT_ROUND_SEED_BPS = 1000;   // 10% seeds next round's pot
     uint256 public constant BPS = 10000;
 
     uint256 public constant BUY_DIVIDENDS_BPS = 2500;       // 25% of after-burn to existing key holders on each buy
@@ -44,6 +44,8 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     uint256 public constant BASE_PRICE = 1000 * 1e18;     // 1000 CLAWD base
     uint256 public constant PRICE_INCREMENT = 110 * 1e18;  // +110 CLAWD per key sold
     uint256 public constant MAX_KEYS_PER_BUY = 1000;       // #6: overflow protection
+
+    uint256 public constant COOLDOWN_DURATION = 32 hours;
 
     address public constant DEAD = 0x000000000000000000000000000000000000dEaD;
 
@@ -64,7 +66,9 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     uint256 public pointsPerKey;
     uint256 internal constant MAGNITUDE = 2**128;
     uint256 public dividendRemainder;    // #8: dust tracking
-    uint256 public nextRoundSeed;        // 5% from previous round seeds the next pot
+    uint256 public nextRoundSeed;        // 10% from previous round seeds the next pot
+    bool public inCooldown;              // true during 32-hour cooldown between rounds
+    uint256 public roundCooldownEnd;     // timestamp when cooldown expires
 
     // Per-round PPK snapshots — prevents cross-round dividend leakage
     mapping(uint256 => uint256) public roundPointsPerKey;
@@ -106,6 +110,7 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     event DividendsClaimed(uint256 indexed round, address indexed player, uint256 amount);
     event RoundStarted(uint256 indexed round, uint256 endTime);
     event TimerExtended(uint256 indexed round, uint256 newEndTime);
+    event CooldownStarted(uint256 indexed round, uint256 cooldownEnd);
 
     // ============ Constructor ============
     constructor(
@@ -142,6 +147,7 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
     /// @notice Buy keys with CLAWD tokens
     /// @param numKeys Number of keys to buy (1 to MAX_KEYS_PER_BUY)
     function buyKeys(uint256 numKeys) external nonReentrant whenNotPaused {
+        require(!inCooldown, "In cooldown");
         require(numKeys > 0 && numKeys <= MAX_KEYS_PER_BUY, "Invalid key count");
         require(block.timestamp < roundEnd, "Round ended");
 
@@ -193,12 +199,16 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
 
     /// @notice End the round and distribute pot
     function endRound() external nonReentrant whenNotPaused {
+        require(!inCooldown, "Already in cooldown");
         require(block.timestamp >= roundEnd, "Round not ended yet");
 
-        // #11: If no one bought keys, reset the round instead of reverting
+        // #11: If no one bought keys, enter cooldown (no distribution needed)
         if (lastBuyer == address(0) || totalKeys == 0) {
-            _resetRound();
-            emit RoundReset(currentRound - 1);
+            roundPointsPerKey[currentRound] = pointsPerKey;
+            inCooldown = true;
+            roundCooldownEnd = block.timestamp + COOLDOWN_DURATION;
+            emit RoundReset(currentRound);
+            emit CooldownStarted(currentRound, roundCooldownEnd);
             return;
         }
 
@@ -241,7 +251,17 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
 
         emit RoundEnded(currentRound, lastBuyer, winnerPayout, burnPayout);
 
-        // Start new round (resets pointsPerKey)
+        // Enter cooldown instead of starting new round immediately
+        inCooldown = true;
+        roundCooldownEnd = block.timestamp + COOLDOWN_DURATION;
+        emit CooldownStarted(currentRound, roundCooldownEnd);
+    }
+
+    /// @notice Start the next round after cooldown expires. Permissionless.
+    function startNextRound() external whenNotPaused {
+        require(inCooldown, "Not in cooldown");
+        require(block.timestamp >= roundCooldownEnd, "Cooldown not over");
+        inCooldown = false;
         _startNewRound();
     }
 
@@ -325,7 +345,9 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         address lastBuyerAddr,
         uint256 keys,
         uint256 keyPrice,
-        bool isActive
+        bool isActive,
+        bool cooldown,
+        uint256 cooldownEnd
     ) {
         round = currentRound;
         potSize = pot;
@@ -333,7 +355,9 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         lastBuyerAddr = lastBuyer;
         keys = totalKeys;
         keyPrice = BASE_PRICE + totalKeys * PRICE_INCREMENT;
-        isActive = block.timestamp < roundEnd;
+        isActive = !inCooldown && block.timestamp < roundEnd;
+        cooldown = inCooldown;
+        cooldownEnd = roundCooldownEnd;
     }
 
     /// @notice Get round result
@@ -435,18 +459,4 @@ contract ClawdFomo3D is ReentrancyGuard, Ownable, Pausable {
         emit RoundStarted(currentRound, roundEnd);
     }
 
-    /// @notice #11: Reset round when no one bought
-    function _resetRound() internal {
-        // Snapshot PPK for this round (will be 0 if no dividends distributed)
-        roundPointsPerKey[currentRound] = pointsPerKey;
-        pointsPerKey = 0;
-        currentRound++;
-        roundStart = block.timestamp;
-        roundEnd = block.timestamp + timerDuration;
-        // pot carries over (if any), no distribution needed
-        totalKeys = 0;
-        lastBuyer = address(0);
-
-        emit RoundStarted(currentRound, roundEnd);
-    }
 }

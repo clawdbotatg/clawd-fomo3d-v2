@@ -10,1132 +10,1205 @@ const deployedContracts = {
       address: "0x859e5cb97e1cf357643a6633d5bec6d45e44cfd4",
       abi: [
         {
-          type: "constructor",
-          inputs: [
-            {
-              name: "_clawd",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "_timerDuration",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "nonpayable",
+                "type": "constructor",
+                "inputs": [
+                        {
+                                "name": "_clawd",
+                                "type": "address",
+                                "internalType": "address"
+                        },
+                        {
+                                "name": "_timerDuration",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "ANTI_SNIPE_EXTENSION",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "ANTI_SNIPE_EXTENSION",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "ANTI_SNIPE_THRESHOLD",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "ANTI_SNIPE_THRESHOLD",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "BASE_PRICE",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "BASE_PRICE",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "BPS",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "BURN_ON_BUY_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "BURN_ON_BUY_BPS",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "BURN_ON_END_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "BURN_ON_END_BPS",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "BUY_DIVIDENDS_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "BUY_DIVIDENDS_BPS",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "DEAD",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "COOLDOWN_DURATION",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "DIVIDENDS_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "DEAD",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "MAX_KEYS_PER_BUY",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "DIVIDENDS_BPS",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "NEXT_ROUND_SEED_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "MAX_KEYS_PER_BUY",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "PRICE_INCREMENT",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "NEXT_ROUND_SEED_BPS",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "WINNER_BPS",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "PRICE_INCREMENT",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "buyKeys",
-          inputs: [
-            {
-              name: "numKeys",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "WINNER_BPS",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "calculateCost",
-          inputs: [
-            {
-              name: "numKeys",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "buyKeys",
+                "inputs": [
+                        {
+                                "name": "numKeys",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "claimAllDividends",
-          inputs: [],
-          outputs: [
-            {
-              name: "totalClaimed",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "calculateCost",
+                "inputs": [
+                        {
+                                "name": "numKeys",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "claimDividends",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "claimAllDividends",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "totalClaimed",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "clawd",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "contract IERC20",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "claimDividends",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "currentKeyPrice",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "clawd",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "address",
+                                "internalType": "contract IERC20"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "currentRound",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "currentKeyPrice",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "dividendRemainder",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "currentRound",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "endRound",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "dividendRemainder",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "getLatestRounds",
-          inputs: [
-            {
-              name: "count",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "tuple[]",
-              internalType: "struct ClawdFomo3D.RoundResultFull[]",
-              components: [
-                {
-                  name: "roundId",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "winner",
-                  type: "address",
-                  internalType: "address",
-                },
-                {
-                  name: "potSize",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "totalKeys",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "winnerPayout",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "burnAmount",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "dividendsPayout",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "seedAmount",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-              ],
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "endRound",
+                "inputs": [],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "getPlayer",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "addr",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "keys",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "pending",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "withdrawn",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "getLatestRounds",
+                "inputs": [
+                        {
+                                "name": "count",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "tuple[]",
+                                "internalType": "struct ClawdFomo3D.RoundResultFull[]",
+                                "components": [
+                                        {
+                                                "name": "roundId",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "winner",
+                                                "type": "address",
+                                                "internalType": "address"
+                                        },
+                                        {
+                                                "name": "potSize",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "totalKeys",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "winnerPayout",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "burnAmount",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "dividendsPayout",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "seedAmount",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        }
+                                ]
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "getRoundCount",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "getPlayer",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "addr",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "keys",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "pending",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "withdrawn",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "getRoundInfo",
-          inputs: [],
-          outputs: [
-            {
-              name: "round",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "potSize",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "endTime",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "lastBuyerAddr",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "keys",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "keyPrice",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "isActive",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "getRoundCount",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "getRoundResult",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "tuple",
-              internalType: "struct ClawdFomo3D.RoundResult",
-              components: [
-                {
-                  name: "winner",
-                  type: "address",
-                  internalType: "address",
-                },
-                {
-                  name: "potSize",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "winnerPayout",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "burned",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "endTime",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "totalKeys",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-              ],
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "getRoundInfo",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "potSize",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "endTime",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "lastBuyerAddr",
+                                "type": "address",
+                                "internalType": "address"
+                        },
+                        {
+                                "name": "keys",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "keyPrice",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "isActive",
+                                "type": "bool",
+                                "internalType": "bool"
+                        },
+                        {
+                                "name": "cooldown",
+                                "type": "bool",
+                                "internalType": "bool"
+                        },
+                        {
+                                "name": "cooldownEnd",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "getRoundResultsBatch",
-          inputs: [
-            {
-              name: "startRound",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "count",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "tuple[]",
-              internalType: "struct ClawdFomo3D.RoundResultFull[]",
-              components: [
-                {
-                  name: "roundId",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "winner",
-                  type: "address",
-                  internalType: "address",
-                },
-                {
-                  name: "potSize",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "totalKeys",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "winnerPayout",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "burnAmount",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "dividendsPayout",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-                {
-                  name: "seedAmount",
-                  type: "uint256",
-                  internalType: "uint256",
-                },
-              ],
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "getRoundResult",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "tuple",
+                                "internalType": "struct ClawdFomo3D.RoundResult",
+                                "components": [
+                                        {
+                                                "name": "winner",
+                                                "type": "address",
+                                                "internalType": "address"
+                                        },
+                                        {
+                                                "name": "potSize",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "winnerPayout",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "burned",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "endTime",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "totalKeys",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        }
+                                ]
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "lastBuyer",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "getRoundResultsBatch",
+                "inputs": [
+                        {
+                                "name": "startRound",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "count",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "tuple[]",
+                                "internalType": "struct ClawdFomo3D.RoundResultFull[]",
+                                "components": [
+                                        {
+                                                "name": "roundId",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "winner",
+                                                "type": "address",
+                                                "internalType": "address"
+                                        },
+                                        {
+                                                "name": "potSize",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "totalKeys",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "winnerPayout",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "burnAmount",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "dividendsPayout",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        },
+                                        {
+                                                "name": "seedAmount",
+                                                "type": "uint256",
+                                                "internalType": "uint256"
+                                        }
+                                ]
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "nextRoundSeed",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "inCooldown",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "bool",
+                                "internalType": "bool"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "owner",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "lastBuyer",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "pause",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "nextRoundSeed",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "paused",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "owner",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "pendingDividends",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "player",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "pause",
+                "inputs": [],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "players",
-          inputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "keys",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "pointsCorrection",
-              type: "int256",
-              internalType: "int256",
-            },
-            {
-              name: "withdrawnDividends",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "paused",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "bool",
+                                "internalType": "bool"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "pointsPerKey",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "pendingDividends",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "player",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "pot",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "players",
+                "inputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "keys",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "pointsCorrection",
+                                "type": "int256",
+                                "internalType": "int256"
+                        },
+                        {
+                                "name": "withdrawnDividends",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "renounceOwnership",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "pointsPerKey",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "roundEnd",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "pot",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "roundPointsPerKey",
-          inputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "renounceOwnership",
+                "inputs": [],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "roundResults",
-          inputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "winner",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "potSize",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "winnerPayout",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "burned",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "endTime",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "totalKeys",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "roundCooldownEnd",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "roundStart",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "roundEnd",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "timerDuration",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "roundPointsPerKey",
+                "inputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "totalBurned",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "roundResults",
+                "inputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "winner",
+                                "type": "address",
+                                "internalType": "address"
+                        },
+                        {
+                                "name": "potSize",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "winnerPayout",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "burned",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "endTime",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "totalKeys",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "totalKeys",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "roundStart",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "totalUnclaimedDividends",
-          inputs: [
-            {
-              name: "player",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "total",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
+                "type": "function",
+                "name": "startNextRound",
+                "inputs": [],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "function",
-          name: "transferOwnership",
-          inputs: [
-            {
-              name: "newOwner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "timerDuration",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "function",
-          name: "unpause",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
+                "type": "function",
+                "name": "totalBurned",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "event",
-          name: "DividendsClaimed",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "player",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "function",
+                "name": "totalKeys",
+                "inputs": [],
+                "outputs": [
+                        {
+                                "name": "",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "event",
-          name: "KeysPurchased",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "buyer",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "keys",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "cost",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "burned",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "function",
+                "name": "totalUnclaimedDividends",
+                "inputs": [
+                        {
+                                "name": "player",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "outputs": [
+                        {
+                                "name": "total",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                        }
+                ],
+                "stateMutability": "view"
         },
         {
-          type: "event",
-          name: "OwnershipTransferred",
-          inputs: [
-            {
-              name: "previousOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "function",
+                "name": "transferOwnership",
+                "inputs": [
+                        {
+                                "name": "newOwner",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "event",
-          name: "Paused",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              indexed: false,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "function",
+                "name": "unpause",
+                "inputs": [],
+                "outputs": [],
+                "stateMutability": "nonpayable"
         },
         {
-          type: "event",
-          name: "RoundEnded",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "winner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "payout",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "burned",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "CooldownStarted",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "indexed": true,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "cooldownEnd",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "event",
-          name: "RoundReset",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "DividendsClaimed",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "indexed": true,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "player",
+                                "type": "address",
+                                "indexed": true,
+                                "internalType": "address"
+                        },
+                        {
+                                "name": "amount",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "event",
-          name: "RoundStarted",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "endTime",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "KeysPurchased",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "indexed": true,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "buyer",
+                                "type": "address",
+                                "indexed": true,
+                                "internalType": "address"
+                        },
+                        {
+                                "name": "keys",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "cost",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "burned",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "event",
-          name: "TimerExtended",
-          inputs: [
-            {
-              name: "round",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "newEndTime",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "OwnershipTransferred",
+                "inputs": [
+                        {
+                                "name": "previousOwner",
+                                "type": "address",
+                                "indexed": true,
+                                "internalType": "address"
+                        },
+                        {
+                                "name": "newOwner",
+                                "type": "address",
+                                "indexed": true,
+                                "internalType": "address"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "event",
-          name: "Unpaused",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              indexed: false,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "Paused",
+                "inputs": [
+                        {
+                                "name": "account",
+                                "type": "address",
+                                "indexed": false,
+                                "internalType": "address"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "error",
-          name: "EnforcedPause",
-          inputs: [],
+                "type": "event",
+                "name": "RoundEnded",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "indexed": true,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "winner",
+                                "type": "address",
+                                "indexed": true,
+                                "internalType": "address"
+                        },
+                        {
+                                "name": "payout",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "burned",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "error",
-          name: "ExpectedPause",
-          inputs: [],
+                "type": "event",
+                "name": "RoundReset",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "indexed": true,
+                                "internalType": "uint256"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "error",
-          name: "OwnableInvalidOwner",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
+                "type": "event",
+                "name": "RoundStarted",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "indexed": true,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "endTime",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "error",
-          name: "OwnableUnauthorizedAccount",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              internalType: "address",
-            },
-          ],
+                "type": "event",
+                "name": "TimerExtended",
+                "inputs": [
+                        {
+                                "name": "round",
+                                "type": "uint256",
+                                "indexed": true,
+                                "internalType": "uint256"
+                        },
+                        {
+                                "name": "newEndTime",
+                                "type": "uint256",
+                                "indexed": false,
+                                "internalType": "uint256"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "error",
-          name: "ReentrancyGuardReentrantCall",
-          inputs: [],
+                "type": "event",
+                "name": "Unpaused",
+                "inputs": [
+                        {
+                                "name": "account",
+                                "type": "address",
+                                "indexed": false,
+                                "internalType": "address"
+                        }
+                ],
+                "anonymous": false
         },
         {
-          type: "error",
-          name: "SafeERC20FailedOperation",
-          inputs: [
-            {
-              name: "token",
-              type: "address",
-              internalType: "address",
-            },
-          ],
+                "type": "error",
+                "name": "EnforcedPause",
+                "inputs": []
         },
-      ],
-      inheritedFunctions: {},
-      deployedOnBlock: 41606714,
+        {
+                "type": "error",
+                "name": "ExpectedPause",
+                "inputs": []
+        },
+        {
+                "type": "error",
+                "name": "OwnableInvalidOwner",
+                "inputs": [
+                        {
+                                "name": "owner",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ]
+        },
+        {
+                "type": "error",
+                "name": "OwnableUnauthorizedAccount",
+                "inputs": [
+                        {
+                                "name": "account",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ]
+        },
+        {
+                "type": "error",
+                "name": "ReentrancyGuardReentrantCall",
+                "inputs": []
+        },
+        {
+                "type": "error",
+                "name": "SafeERC20FailedOperation",
+                "inputs": [
+                        {
+                                "name": "token",
+                                "type": "address",
+                                "internalType": "address"
+                        }
+                ]
+        }
+],
     },
   },
 } as const;

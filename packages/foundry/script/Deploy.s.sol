@@ -8,8 +8,8 @@ contract DeployScript is ScaffoldETHDeploy {
     function run() external ScaffoldEthDeployerRunner {
         // CLAWD token address on Base
         address clawdToken = 0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07;
-        // Timer: 5 minutes (300 seconds)
-        uint256 timerDuration = 5 minutes;
+        // Timer: 10 minutes (600 seconds)
+        uint256 timerDuration = 10 minutes;
 
         ClawdFomo3D game = new ClawdFomo3D(
             clawdToken,

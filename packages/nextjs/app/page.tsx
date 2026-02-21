@@ -178,11 +178,13 @@ export default function Home() {
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
   // ============ Contract Reads (all poll every 3s) ============
-  const { data: roundInfo } = useScaffoldReadContract({
+  const { data: roundInfoRaw } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
     functionName: "getRoundInfo",
     query: { refetchInterval: POLL_MS },
   });
+  // v10: getRoundInfo returns 9 values (added cooldown, cooldownEnd)
+  const roundInfo = roundInfoRaw;
   const { data: totalBurned } = useScaffoldReadContract({
     contractName: "ClawdFomo3D",
     functionName: "totalBurned",
@@ -482,9 +484,54 @@ export default function Home() {
 
   // ============ Derived State ============
   const isRoundActive = roundInfo ? Boolean(roundInfo[6]) : false;
+  const isInCooldown = roundInfo ? Boolean(roundInfo[7]) : false;
+  const cooldownEndTime = roundInfo ? Number(roundInfo[8]) : 0;
   const wrongNetwork = chainId !== TARGET_CHAIN_ID;
   const needsApproval = cost && clawdAllowance !== undefined && clawdAllowance < cost;
   const isAntiSnipe = timeLeft > 0 && timeLeft <= 120;
+
+  // Cooldown countdown
+  const [cooldownCountdown, setCooldownCountdown] = useState("");
+  const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
+  const [isStartingRound, setIsStartingRound] = useState(false);
+
+  useEffect(() => {
+    if (!isInCooldown || !cooldownEndTime) {
+      setCooldownCountdown("");
+      setCooldownTimeLeft(0);
+      return;
+    }
+    const tick = () => {
+      const now = Math.floor(Date.now() / 1000);
+      const diff = cooldownEndTime - now;
+      setCooldownTimeLeft(diff);
+      if (diff <= 0) {
+        setCooldownCountdown("00:00:00");
+        return;
+      }
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      setCooldownCountdown(`${pad(h)}:${pad(m)}:${pad(s)}`);
+    };
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [isInCooldown, cooldownEndTime]);
+
+  const handleStartRound = async () => {
+    setIsStartingRound(true);
+    try {
+      await writeFomo({ functionName: "startNextRound" });
+      notification.success("ROUND STARTED 🦞");
+      triggerConfetti();
+    } catch (err: unknown) {
+      notification.error(decodeError(err));
+    } finally {
+      setIsStartingRound(false);
+    }
+  };
 
   // ============ RENDER ============
   return (
@@ -566,7 +613,7 @@ export default function Home() {
             <div className="text-xs md:text-sm font-bold text-[#f0e6ff] mb-1">1. BUY A KEY</div>
             <div className="text-[11px] md:text-xs text-[#8b7aaa] leading-relaxed">
               Adds time to the clock. Makes YOU the King.
-              <span className="text-[#c9a0ff]"> Bonus:</span> Key holders earn 22.5% of every purchase + split 25% of
+              <span className="text-[#c9a0ff]"> Bonus:</span> Key holders earn 23.75% of every purchase + split 25% of
               the pot at round end!
             </div>
           </div>
@@ -576,6 +623,7 @@ export default function Home() {
             <div className="text-[11px] md:text-xs text-[#8b7aaa] leading-relaxed">
               If the timer hits <span className="text-[#f97316] font-bold">00:00:00</span> while you are King…
               <span className="text-[#f97316] font-bold"> YOU WIN THE POT.</span> 💰
+              <span className="text-[#8b7aaa]"> Next round starts after a 32-hour cooldown.</span>
             </div>
           </div>
           <div className="card-glass rounded-xl p-3 md:p-4">
@@ -583,7 +631,7 @@ export default function Home() {
             <div className="text-xs md:text-sm font-bold text-[#f0e6ff] mb-1">3. BURN IT ALL</div>
             <div className="text-[11px] md:text-xs text-[#8b7aaa] leading-relaxed">
               Every buy burns tokens. Number go up.
-              <span className="text-[#c9a0ff]"> 10% burned on every purchase + 20% of the pot at round end.</span>
+              <span className="text-[#c9a0ff]"> 5% burned on every purchase + 10% of the pot at round end.</span>
             </div>
           </div>
         </div>
@@ -594,7 +642,7 @@ export default function Home() {
          ═══════════════════════════════════════ */}
       <div className="w-full card-glass rounded-2xl p-4 md:p-10 text-center mt-2">
         <div className="text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase text-[#c9a0ff]/70 mb-1">
-          ◆ round {currentRound || "—"} {isAntiSnipe ? "// ANTI-SNIPE" : isRoundActive ? "// ACTIVE" : "// ENDED"} ◆
+          ◆ round {currentRound || "—"} {isInCooldown ? "// COOLDOWN" : isAntiSnipe ? "// ANTI-SNIPE" : isRoundActive ? "// ACTIVE" : "// ENDED"} ◆
         </div>
 
         {/* POT SIZE — above countdown */}
@@ -608,22 +656,42 @@ export default function Home() {
           )}
         </div>
 
-        <div
-          className={`text-[2.75rem] md:text-[8rem] font-mono font-black tracking-tight leading-none my-3 md:my-6 ${
-            isAntiSnipe ? "text-glow-intense animate-flicker" : isRoundActive ? "text-glow" : ""
-          }`}
-          style={{ color: "#f97316" }}
-        >
-          {countdown || "--:--:--"}
-        </div>
-
-        <div className="text-xs text-[#c9a0ff]/70 tracking-wider">
-          {isRoundActive
-            ? isAntiSnipe
-              ? "🚨 UNDER 2 MIN — EVERY BUY EXTENDS THE TIMER 🚨"
-              : "last buyer when timer hits zero wins the pot"
-            : "round ended — execute endRound() to distribute"}
-        </div>
+        {isInCooldown ? (
+          <>
+            <div className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-[#c9a0ff]/50 mb-2">
+              next round starts in
+            </div>
+            <div
+              className="text-[2.75rem] md:text-[8rem] font-mono font-black tracking-tight leading-none my-3 md:my-6 text-glow-subtle"
+              style={{ color: "#7c3aed" }}
+            >
+              {cooldownCountdown || "--:--:--"}
+            </div>
+            <div className="text-xs text-[#c9a0ff]/70 tracking-wider">
+              {cooldownTimeLeft <= 0
+                ? "⚡ COOLDOWN OVER — START THE NEXT ROUND ⚡"
+                : "the arena is being prepared..."}
+            </div>
+          </>
+        ) : (
+          <>
+            <div
+              className={`text-[2.75rem] md:text-[8rem] font-mono font-black tracking-tight leading-none my-3 md:my-6 ${
+                isAntiSnipe ? "text-glow-intense animate-flicker" : isRoundActive ? "text-glow" : ""
+              }`}
+              style={{ color: "#f97316" }}
+            >
+              {countdown || "--:--:--"}
+            </div>
+            <div className="text-xs text-[#c9a0ff]/70 tracking-wider">
+              {isRoundActive
+                ? isAntiSnipe
+                  ? "🚨 UNDER 2 MIN — EVERY BUY EXTENDS THE TIMER 🚨"
+                  : "last buyer when timer hits zero wins the pot"
+                : "round ended — execute endRound() to distribute"}
+            </div>
+          </>
+        )}
 
         {isAntiSnipe && (
           <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 border border-[#f97316]/70 bg-[#f97316]/15 rounded-full">
@@ -632,8 +700,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* END ROUND — right under timer when round is over */}
-        {!isRoundActive && (
+        {/* END ROUND — when round timer expired but not yet distributed */}
+        {!isRoundActive && !isInCooldown && (
           <div className="mt-6">
             <div className="text-xs md:text-sm text-[#f97316] font-bold mb-2 text-glow-subtle animate-pulse">
               🏁 ROUND OVER — DISTRIBUTE
@@ -654,6 +722,33 @@ export default function Home() {
                 onClick={handleEndRound}
               >
                 {isEnding ? "EXECUTING..." : "🏁 END ROUND 🏁"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* START NEXT ROUND — when cooldown is over */}
+        {isInCooldown && cooldownTimeLeft <= 0 && (
+          <div className="mt-6">
+            <div className="text-xs md:text-sm text-[#7c3aed] font-bold mb-2 text-glow-subtle animate-pulse">
+              ⚡ COOLDOWN OVER — START THE NEXT ROUND
+            </div>
+            <div className="text-[10px] md:text-xs text-[#8b7aaa] mb-3">anyone can start the next round</div>
+            {wrongNetwork ? (
+              <button
+                className="btn-crown rounded-xl py-3 px-6 md:py-4 md:px-10 text-sm md:text-lg hover:scale-[1.03] active:scale-95"
+                disabled={isSwitching}
+                onClick={handleSwitch}
+              >
+                {isSwitching ? "SWITCHING..." : "SWITCH TO BASE"}
+              </button>
+            ) : (
+              <button
+                className="btn-crown rounded-xl py-3 px-6 md:py-4 md:px-10 text-sm md:text-lg hover:scale-[1.03] active:scale-95 animate-pulse"
+                disabled={isStartingRound}
+                onClick={handleStartRound}
+              >
+                {isStartingRound ? "STARTING..." : "⚡ START ROUND ⚡"}
               </button>
             )}
           </div>
@@ -739,7 +834,7 @@ export default function Home() {
                 </div>
                 <div className="flex justify-center">
                   <span className="text-[#f97316] text-xs font-mono">
-                    🔥 {fmtC((cost * 10n) / 100n)} CLAWD burned on buy
+                    🔥 {fmtC((cost * 5n) / 100n)} CLAWD burned on buy
                   </span>
                 </div>
               </div>
@@ -776,16 +871,18 @@ export default function Home() {
                 className={`btn-crown rounded-xl w-full py-4 px-4 md:py-5 md:px-8 text-base md:text-xl ${
                   !isBuying && isRoundActive ? "hover:scale-[1.03] active:scale-95" : ""
                 }`}
-                disabled={isBuying || !isRoundActive}
+                disabled={isBuying || !isRoundActive || isInCooldown}
                 onClick={handleBuy}
               >
                 {isBuying
                   ? "EXECUTING..."
-                  : !isRoundActive
-                    ? "ROUND ENDED"
-                    : address && roundInfo && roundInfo[3] && roundInfo[3].toLowerCase() === address.toLowerCase()
-                      ? "BUY MORE KEYS 🔑"
-                      : "SNATCH THE 👑 CROWN"}
+                  : isInCooldown
+                    ? "IN COOLDOWN"
+                    : !isRoundActive
+                      ? "ROUND ENDED"
+                      : address && roundInfo && roundInfo[3] && roundInfo[3].toLowerCase() === address.toLowerCase()
+                        ? "BUY MORE KEYS 🔑"
+                        : "SNATCH THE 👑 CROWN"}
               </button>
             )}
 
@@ -1086,26 +1183,26 @@ export default function Home() {
         <div className="space-y-2 text-xs md:text-sm">
           <div className="flex flex-wrap justify-between gap-1">
             <TermLabel>👑 winner</TermLabel>
-            <TermValue glow>50%</TermValue>
+            <TermValue glow>55%</TermValue>
           </div>
           <div className="flex flex-wrap justify-between gap-1">
             <TermLabel>🔥 burned</TermLabel>
-            <TermValue>20%</TermValue>
+            <TermValue>10%</TermValue>
           </div>
           <div className="flex flex-wrap justify-between gap-1">
             <TermLabel>💎 key dividends</TermLabel>
             <TermValue>
-              <span className="hidden md:inline">22.5% per buy + 25% end</span>
-              <span className="md:hidden">22.5% + 25%</span>
+              <span className="hidden md:inline">23.75% per buy + 25% end</span>
+              <span className="md:hidden">23.75% + 25%</span>
             </TermValue>
           </div>
           <div className="flex flex-wrap justify-between gap-1">
             <TermLabel>🌱 next round</TermLabel>
-            <TermValue>5%</TermValue>
+            <TermValue>10%</TermValue>
           </div>
         </div>
         <div className="text-[9px] md:text-[10px] text-[#8b7aaa] mt-3 tracking-wider text-center">
-          + 10% of every key purchase is burned on buy 🔥
+          + 5% of every key purchase is burned on buy 🔥
         </div>
       </div>
 
